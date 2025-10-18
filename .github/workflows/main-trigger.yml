@@ -9,20 +9,18 @@ on:
 jobs:
   # Job 1: Build and create artifact
   build:
-    uses: givoxxs/Danang-Culinary-Atlas/.github/workflows/reusable-ci-build.yml@ci-cd-workflows
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-ci-build.yml@ci-cd-workflows
 
   # Job 2: Confirm deployment
   confirm:
     needs: build
     if: github.ref == 'refs/heads/master'
-    uses: givoxxs/Danang-Culinary-Atlas/.github/workflows/reusable-confirm.yml@ci-cd-workflows
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-confirm.yml@ci-cd-workflows
     secrets: inherit
 
   # Job 3: Deploy application
   deploy:
     needs: [build, confirm]
     if: github.ref == 'refs/heads/master' && needs.confirm.result == 'success'
-    environment: 
-      name: production
-    uses: givoxxs/Danang-Culinary-Atlas/.github/workflows/reusable-cd-deploy.yml@ci-cd-workflows
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-cd-deploy.yml@ci-cd-workflows
     secrets: inherit
