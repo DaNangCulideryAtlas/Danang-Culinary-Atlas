@@ -1,0 +1,31 @@
+name: Reusable CI - Build and Create Artifact
+
+on:
+  workflow_call:
+
+jobs:
+  build_and_artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn -B -U clean install -DskipTests
+      
+      - name: Inspect application.properties in JAR
+        run: |
+          echo "--- Displaying contents of application.properties inside the final JAR for debugging ---"
+          unzip -p target/*.jar BOOT-INF/classes/application.properties
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spring-boot-jar # Tên của artifact
+          path: target/*.jar # Đường dẫn đến file .jar cần lưu

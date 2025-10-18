@@ -1,0 +1,69 @@
+name: Reusable CD - Download Artifact and Deploy
+
+on:
+  workflow_call:
+    secrets:
+        DB_URL:
+          required: true
+        DB_USERNAME:
+          required: true
+        DB_PASSWORD:
+          required: true
+        SERVER_PORT:
+          required: true
+        JWT_SECRET:
+          required: true
+        JWT_EXPIRATION:
+          required: true
+        SPRING_MAIL_HOST:
+          required: true
+        SPRING_MAIL_PORT:
+          required: true
+        SPRING_MAIL_USERNAME:
+          required: true
+        SPRING_MAIL_PASSWORD:
+          required: true
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spring-boot-jar # Tải về artifact có cùng tên
+          path: target # Giải nén vào thư mục 'target'
+
+      - name: Create .env file
+        working-directory: ${{ github.workspace }}
+        run: |
+          cat << EOF > .env
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SERVER_PORT=${{ secrets.SERVER_PORT }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
+          EOF
+          echo ".env file created successfully."
+      
+      - name: Display .env file content for debugging
+        working-directory: ${{ github.workspace }}
+        run: cat .env
+
+      - name: Stop and remove old containers and networks
+        working-directory: ${{ github.workspace }}
+        run: docker-compose down || true
+
+      - name: Clean up unused Docker images
+        run: docker image prune -a -f
+
+      - name: Deploy with Docker Compose
+        working-directory: ${{ github.workspace }}
+        run: docker-compose up --build -d
