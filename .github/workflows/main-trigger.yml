@@ -20,7 +20,7 @@ jobs:
 
   # Job 3: Deploy application
   deploy:
-    needs: confirm
-    if: github.ref == 'refs/heads/master'
+    needs: [build, confirm]
+    if: github.ref == 'refs/heads/master' && needs.confirm.result == 'success'
     uses: givoxxs/Danang-Culinary-Atlas/.github/workflows/reusable-cd-deploy.yml@ci-cd-workflows
     secrets: inherit
