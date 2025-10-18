@@ -27,5 +27,5 @@ jobs:
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: spring-boot-jar # Tên của artifact
-          path: target/*.jar # Đường dẫn đến file .jar cần lưu
+          name: spring-boot-jar
+          path: target/*.jar 

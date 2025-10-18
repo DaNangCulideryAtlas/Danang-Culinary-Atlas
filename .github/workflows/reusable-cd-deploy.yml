@@ -33,8 +33,8 @@ jobs:
       - name: Download JAR Artifact
         uses: actions/download-artifact@v4
         with:
-          name: spring-boot-jar # Tải về artifact có cùng tên
-          path: target # Giải nén vào thư mục 'target'
+          name: spring-boot-jar 
+          path: target
 
       - name: Create .env file
         working-directory: ${{ github.workspace }}
@@ -52,10 +52,6 @@ jobs:
           SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
           EOF
           echo ".env file created successfully."
-      
-      - name: Display .env file content for debugging
-        working-directory: ${{ github.workspace }}
-        run: cat .env
 
       - name: Stop and remove old containers and networks
         working-directory: ${{ github.workspace }}
