@@ -1,9 +1,7 @@
 package com.atlasculinary.services.impl;
 
-import com.atlasculinary.dtos.ReportDto;
 import com.atlasculinary.dtos.ReviewDto;
 import com.atlasculinary.dtos.ReviewReplyRequest;
-import com.atlasculinary.dtos.ReviewReportRequest;
 import com.atlasculinary.entities.Account;
 import com.atlasculinary.entities.Review;
 import com.atlasculinary.exceptions.ResourceNotFoundException;
