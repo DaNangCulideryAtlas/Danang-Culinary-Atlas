@@ -1,6 +1,9 @@
 package com.atlasculinary.controllers;
 
+import com.atlasculinary.dtos.AdminDto;
 import com.atlasculinary.dtos.ApiResponse;
+import com.atlasculinary.dtos.UserDto;
+import com.atlasculinary.dtos.VendorDto;
 import com.atlasculinary.dtos.profile.*;
 import com.atlasculinary.services.ProfileService;
 import jakarta.validation.Valid;
@@ -21,7 +24,7 @@ public class ProfileController {
   @PreAuthorize("hasAuthority('USER')")
   public ResponseEntity<ApiResponse> getUserProfile(Authentication authentication) {
     String email = authentication.getName();
-    UserProfileResponseDto profile = profileService.getUserProfile(email);
+    UserDto profile = profileService.getUserProfile(email);
     return ResponseEntity.ok(ApiResponse.success("Lấy thông tin người dùng thành công", profile));
   }
 
@@ -31,7 +34,7 @@ public class ProfileController {
         @Valid @RequestBody UserProfileUpdateDto updateDto,
         Authentication authentication) {
     String email = authentication.getName();
-    UserProfileResponseDto profile = profileService.updateUserProfile(email, updateDto);
+    UserDto profile = profileService.updateUserProfile(email, updateDto);
     return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin người dùng thành công", profile));
   }
 
@@ -39,7 +42,7 @@ public class ProfileController {
   @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<ApiResponse> getAdminProfile(Authentication authentication) {
     String email = authentication.getName();
-    AdminProfileResponseDto profile = profileService.getAdminProfile(email);
+    AdminDto profile = profileService.getAdminProfile(email);
     return ResponseEntity.ok(ApiResponse.success("Lấy thông tin quản trị viên thành công", profile));
   }
 
@@ -49,7 +52,7 @@ public class ProfileController {
         @Valid @RequestBody AdminProfileUpdateDto updateDto,
         Authentication authentication) {
     String email = authentication.getName();
-    AdminProfileResponseDto profile = profileService.updateAdminProfile(email, updateDto);
+    AdminDto profile = profileService.updateAdminProfile(email, updateDto);
     return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin quản trị viên thành công", profile));
   }
 
@@ -57,7 +60,7 @@ public class ProfileController {
   @PreAuthorize("hasAuthority('VENDOR')")
   public ResponseEntity<ApiResponse> getVendorProfile(Authentication authentication) {
     String email = authentication.getName();
-    VendorProfileResponseDto profile = profileService.getVendorProfile(email);
+    VendorDto profile = profileService.getVendorProfile(email);
     return ResponseEntity.ok(ApiResponse.success("Lấy thông tin nhà cung cấp thành công", profile));
   }
 
@@ -67,7 +70,7 @@ public class ProfileController {
         @Valid @RequestBody VendorProfileUpdateDto updateDto,
         Authentication authentication) {
     String email = authentication.getName();
-    VendorProfileResponseDto profile = profileService.updateVendorProfile(email, updateDto);
+    VendorDto profile = profileService.updateVendorProfile(email, updateDto);
     return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin nhà cung cấp thành công", profile));
   }
 }

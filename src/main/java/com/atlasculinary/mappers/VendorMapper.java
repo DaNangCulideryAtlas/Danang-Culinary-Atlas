@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface VendorMapper {
-    @Mapping(source = "account.accountId", target = "accountId")
+    @Mapping(source = "accountId", target = "accountId")
     @Mapping(source = "account.email", target = "email")
     @Mapping(source = "account.fullName", target = "fullName")
     @Mapping(source = "account.status", target = "status")

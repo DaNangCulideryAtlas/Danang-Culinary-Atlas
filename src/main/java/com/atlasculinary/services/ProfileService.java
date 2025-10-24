@@ -1,15 +1,18 @@
 package com.atlasculinary.services;
 
+import com.atlasculinary.dtos.AdminDto;
+import com.atlasculinary.dtos.UserDto;
+import com.atlasculinary.dtos.VendorDto;
 import com.atlasculinary.dtos.profile.*;
 
 public interface ProfileService {
     
-  UserProfileResponseDto getUserProfile(String email);
-  UserProfileResponseDto updateUserProfile(String email, UserProfileUpdateDto updateDto);
+  UserDto getUserProfile(String email);
+  UserDto updateUserProfile(String email, UserProfileUpdateDto updateDto);
     
-  AdminProfileResponseDto getAdminProfile(String email);
-  AdminProfileResponseDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto);
+  AdminDto getAdminProfile(String email);
+  AdminDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto);
   
-  VendorProfileResponseDto getVendorProfile(String email);
-  VendorProfileResponseDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto);
+  VendorDto getVendorProfile(String email);
+  VendorDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto);
 }

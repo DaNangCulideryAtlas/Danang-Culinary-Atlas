@@ -2,27 +2,21 @@ package com.atlasculinary.dtos;
 
 import com.atlasculinary.enums.AccountStatus;
 import com.atlasculinary.enums.Gender;
-import com.atlasculinary.enums.RoleLevel;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-public class AdminDto {
+public class UserDto {
     private UUID accountId;
     private String email;
     private String fullName;
     private String avatarUrl;
-    private String phone;
     private AccountStatus status;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
 
     private Gender gender;
-    private RoleLevel roleLevel;
 }

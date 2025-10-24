@@ -23,10 +23,10 @@ public interface RestaurantService {
     Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection);
 
 
-    RestaurantDto updateRestaurant(UUID restaurantId, UpdateRestaurantRequest request);
+    RestaurantDto updateRestaurant(UUID restaurantId, UpdateRestaurantRequest request, UUID accessAccountId);
 
 
-    void deleteRestaurant(UUID restaurantId);
+    void deleteRestaurant(UUID restaurantId, UUID accessAccountId);
 
 
     RestaurantDto updateApprovalStatus(
@@ -35,4 +35,5 @@ public interface RestaurantService {
             UpdateApprovalStatusRequest request
     );
 
+    Page<RestaurantDto> getAllRestaurantsApproved(int page, int size, String sortBy, String sortDirection);
 }

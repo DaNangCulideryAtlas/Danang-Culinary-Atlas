@@ -9,78 +9,95 @@ import com.atlasculinary.services.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.AuthenticatedPrincipal;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/restaurant")
+@RequestMapping("/api/v1")
+@AllArgsConstructor
 @Tag(name = "Restaurant Management", description = "API for managing restaurant data")
 public class RestaurantController {
+
     private final RestaurantService restaurantService;
 
-    public RestaurantController(RestaurantService restaurantService) {
-        this.restaurantService = restaurantService;
-    }
 
-    @Operation(summary = "Create a new restaurant")
-    @PostMapping
+    // =================================================================
+    // === VENDOR/ADMIN ENDPOINTS (CRUD) ===
+    // =================================================================
+
+    @Operation(summary = "Create a new restaurant (by Vendor or Admin)")
+    @PostMapping("/restaurants")
     @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
-    ResponseEntity<RestaurantDto> createRestaurant(@RequestBody AddRestaurantRequest addRestaurantRequest,
+    ResponseEntity<RestaurantDto> createRestaurant(@Valid @RequestBody AddRestaurantRequest addRestaurantRequest,
                                                    @AuthenticationPrincipal CustomAccountDetails principal) {
         var ownerAccountId = principal.getAccountId();
+        // Service sẽ gán principal.accountId làm Owner của nhà hàng
         var restaurantDto = restaurantService.createRestaurant(ownerAccountId, addRestaurantRequest);
         return new ResponseEntity<>(restaurantDto,HttpStatus.CREATED);
     }
-    @Operation(summary = "Get restaurant details by Id")
-    @GetMapping("/{restaurantId}")
+
+    @Operation(summary = "Update an existing restaurant's details")
+    @PatchMapping("/restaurants/{restaurantId}")
+    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    ResponseEntity<RestaurantDto> updateRestaurant(@PathVariable UUID restaurantId,
+                                                   @Valid @RequestBody UpdateRestaurantRequest updateRestaurantRequest,
+                                                   @AuthenticationPrincipal CustomAccountDetails principal) {
+        var accessAccountId = principal.getAccountId();
+        // Service kiểm tra accessAccountId có quyền sở hữu/Admin
+        var restaurantDto = restaurantService.updateRestaurant(restaurantId, updateRestaurantRequest, accessAccountId);
+        return ResponseEntity.ok(restaurantDto);
+    }
+
+    @Operation(summary = "Delete a restaurant by Id (Soft Delete, chỉ Owner hoặc Admin)")
+    @DeleteMapping("/restaurants/{restaurantId}")
+    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    ResponseEntity<Void> deleteRestaurant(@PathVariable UUID restaurantId,
+                                          @AuthenticationPrincipal CustomAccountDetails principal) {
+        var accessAccountId = principal.getAccountId();
+        // Cải tiến: Truyền accessAccountId vào Service để kiểm tra quyền sở hữu/Admin
+        restaurantService.deleteRestaurant(restaurantId, accessAccountId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // =================================================================
+    // === PUBLIC ENDPOINTS (READ) ===
+    // =================================================================
+
+    @Operation(summary = "Get restaurant details by Id (Public)")
+    @GetMapping("/restaurants/{restaurantId}")
     ResponseEntity<RestaurantDto> getRestaurantById(@PathVariable UUID restaurantId) {
+        // Service chỉ trả về nhà hàng đã APPROVED và không bị xóa
         var restaurantDto = restaurantService.getRestaurantById(restaurantId);
         return ResponseEntity.ok(restaurantDto);
     }
 
-    @Operation(summary = "Update an existing restaurant's details")
-    @PatchMapping("/{restaurantId}")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
-    ResponseEntity<RestaurantDto> updateRestaurant(@PathVariable UUID restaurantId,
-                                                   @RequestBody UpdateRestaurantRequest updateRestaurantRequest,
-                                                   @AuthenticationPrincipal CustomAccountDetails principal) {
-        var accessAccountId = principal.getAccountId();
-        var restaurantDto = restaurantService.updateRestaurant(restaurantId, updateRestaurantRequest);
-        return ResponseEntity.ok(restaurantDto);
-
-    }
-
-    @Operation(summary = "Delete a restaurant by Id")
-    @DeleteMapping("/{restaurantId}")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
-    ResponseEntity<Void> deleteRestaurant(@PathVariable UUID restaurantId,
-                                          @AuthenticationPrincipal CustomAccountDetails principal) {
-        restaurantService.deleteRestaurant(restaurantId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @Operation(summary = "Get all restaurants with pagination and sorting")
-    @GetMapping
+    @Operation(summary = "Get all approved restaurants with pagination and sorting")
+    @GetMapping("/restaurants")
     public ResponseEntity<Page<RestaurantDto>> getAllRestaurants(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
-        Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurants(page, size, sortBy, sortDirection);
+        // Service chỉ trả về các nhà hàng đã APPROVED
+        Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurantsApproved(page, size, sortBy, sortDirection);
         return ResponseEntity.ok(restaurantsPage);
     }
 
-    @Operation(summary = "Get all restaurants of a vendor")
-    @GetMapping("/vendor/{vendorId}")
+    // =================================================================
+    // === VENDOR OWNERSHIP ENDPOINTS ===
+    // =================================================================
+
+    @Operation(summary = "Get all restaurants belonging to a specific Vendor (dành cho Vendor/Admin)")
+    @GetMapping("/vendors/{vendorId}/restaurants") // URI: /api/v1/vendors/{vendorId}/restaurants
+    @PreAuthorize("hasAuthority('ADMIN') or #vendorId == principal.accountId")
     public ResponseEntity<Page<RestaurantDto>> getAllRestaurantsByVendor(
             @PathVariable UUID vendorId,
             @RequestParam(defaultValue = "0") int page,
@@ -88,14 +105,19 @@ public class RestaurantController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
             @AuthenticationPrincipal CustomAccountDetails principal
-            ) {
-
+    ) {
+        // Service sẽ trả về danh sách đầy đủ (bao gồm PENDING, REJECTED) cho Vendor hoặc Admin
         Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurantsByVendor(vendorId, page, size, sortBy, sortDirection);
         return ResponseEntity.ok(restaurantsPage);
     }
 
+
+    // =================================================================
+    // === ADMIN ENDPOINTS (APPROVAL) ===
+    // =================================================================
+
     @Operation(summary = "Update the approval status of a restaurant (Admin only)")
-    @PatchMapping("/{restaurantId}/approval")
+    @PatchMapping("/restaurants/admin/{restaurantId}/approval") // URI: /api/v1/admin/restaurants/{id}/approval
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<RestaurantDto> updateApprovalStatus(
             @PathVariable UUID restaurantId,
@@ -107,6 +129,17 @@ public class RestaurantController {
         return ResponseEntity.ok(updatedRestaurant);
     }
 
+    @Operation(summary = "ADMIN: Get all restaurants with any status (PENDING, APPROVED, REJECTED)")
+    @GetMapping("/restaurants/admin") // URI: /api/v1/restaurants/admin
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Page<RestaurantDto>> getAllRestaurantsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
 
-
+        // Service này sẽ không lọc theo trạng thái APPROVED
+        Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurants(page, size, sortBy, sortDirection);
+        return ResponseEntity.ok(restaurantsPage);
+    }
 }

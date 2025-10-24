@@ -44,27 +44,63 @@ public class SecurityConfig {
   public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
     return config.getAuthenticationManager();
   }
-  private static final String[] PUBLIC_URLS = {
-        "/v3/api-docs/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/webjars/**",
-        "/api/v1/auth/**",
-        "/api/v1/restaurant", // Danh sách
-        "/api/v1/restaurant/{restaurantId}", // Chi tiết theo ID
-        "/api/v1/restaurant/vendor/{vendorId}" // Chi tiết theo ID
-  };
+    // Các URI hoàn toàn công khai
+    private static final String[] PUBLIC_BASE_URLS = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/api/v1/auth/**"
+    };
+
+    // URI cho phép truy cập GET công khai (tài nguyên chính và tài nguyên con để đọc)
+    private static final String[] PUBLIC_GET_URLS = {
+            // Tài nguyên chính: Nhà hàng, Món ăn, Review (cho phép /api/v1/restaurants, /api/v1/restaurants/{id}...)
+            "/api/v1/restaurants/**",
+            "/api/v1/dishes/**",
+            "/api/v1/reviews/**",
+            "/api/v1/restaurants/*/dishes",
+            "/api/v1/restaurants/*/reviews",
+            "/api/v1/dishes/*/reviews"
+    };
+
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
       .csrf(csrf -> csrf.disable())
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .authorizeHttpRequests(auth -> auth
-              .requestMatchers(PUBLIC_URLS).permitAll()
-              .requestMatchers(HttpMethod.POST, "/api/v1/restaurant").hasAnyAuthority("VENDOR", "ADMIN")
+              // 1. PUBLIC BASE URLS (Luôn cho phép)
+              .requestMatchers(PUBLIC_BASE_URLS).permitAll()
+
+              // 2. PUBLIC GET ACCESS (Đọc dữ liệu công khai)
+              .requestMatchers(HttpMethod.GET, PUBLIC_GET_URLS).permitAll()
+
+              // 3. ADMIN ENDPOINTS
+              .requestMatchers("/api/v1/*/admin/**").hasAuthority("ADMIN")
+              .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
+
+              // 4. RESTAURANT & DISH ENDPOINTS
+              .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
+              .requestMatchers(HttpMethod.PUT, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
+              .requestMatchers(HttpMethod.PATCH, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
+              .requestMatchers(HttpMethod.DELETE, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
+
+              // 5. REVIEW ENDPOINTS
+              .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
+              .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/**").authenticated()
+              .requestMatchers(HttpMethod.PATCH, "/api/v1/reviews/**").authenticated()
+              .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/**").authenticated()
+
+              // 6. NOTIFICATION ENDPOINTS
+              .requestMatchers("/api/v1/notifications/**").authenticated()
+
+              // 7. PROFILE PATHS
               .requestMatchers("/api/v1/profile/admin/**").hasAuthority("ADMIN")
               .requestMatchers("/api/v1/profile/user/**").hasAnyAuthority("USER", "ADMIN")
               .requestMatchers("/api/v1/profile/vendor/**").hasAnyAuthority("VENDOR", "ADMIN")
+
+              // 8. CATCH-ALL: Tất cả các request còn lại phải được xác thực
               .anyRequest().authenticated()
       )
         .exceptionHandling(ex -> ex
