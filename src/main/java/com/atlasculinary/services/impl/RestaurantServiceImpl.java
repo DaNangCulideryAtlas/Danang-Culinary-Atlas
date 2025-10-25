@@ -6,13 +6,16 @@ import com.atlasculinary.entities.AdminProfile;
 import com.atlasculinary.entities.Restaurant;
 import com.atlasculinary.entities.Ward;
 import com.atlasculinary.enums.ApprovalStatus;
+import com.atlasculinary.enums.RestaurantStatus;
 import com.atlasculinary.exceptions.InvalidRequestException;
 import com.atlasculinary.exceptions.ResourceNotFoundException;
 import com.atlasculinary.mappers.RestaurantMapper;
 import com.atlasculinary.repositories.*;
+import com.atlasculinary.services.AccountService;
 import com.atlasculinary.services.NotificationService;
 import com.atlasculinary.services.RestaurantService;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.hibernate.metamodel.spi.ValueAccess;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,33 +29,21 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 @Service
+@AllArgsConstructor
 public class RestaurantServiceImpl implements RestaurantService {
     private static final Logger LOGGER = Logger.getLogger(RestaurantServiceImpl.class.getName());
     private final RestaurantRepository restaurantRepository;
-    private final AccountRepository accountRepository;
+    private final AccountService accountService;
     private final WardRepository wardRepository;
     private final RestaurantMapper restaurantMapper;
     private final NotificationService notificationService;
 
-    public RestaurantServiceImpl(
-            RestaurantRepository restaurantRepository,
-            AccountRepository accountRepository,
-            WardRepository wardRepository,
-            RestaurantMapper restaurantMapper,
-            NotificationService notificationService) {
 
-        this.restaurantRepository = restaurantRepository;
-        this.accountRepository = accountRepository;
-        this.wardRepository = wardRepository;
-        this.restaurantMapper = restaurantMapper;
-        this.notificationService = notificationService;
-    }
 
     @Override
     @Transactional
     public RestaurantDto createRestaurant(UUID ownerAccountId, AddRestaurantRequest request) {
-        var vendor = accountRepository.findById(ownerAccountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found with ID: " + ownerAccountId));
+        var vendor = accountService.getAccountById(ownerAccountId);
 
         var ward = wardRepository.findById(request.getWardId())
                 .orElseThrow(() -> new ResourceNotFoundException("Ward not found with ID: " +ownerAccountId));
@@ -67,7 +58,6 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
 
         notificationService.notifyAdminNewRestaurantSubmission(restaurant.getRestaurantId());
-        // 6. Trả về DTO
         return restaurantMapper.toDto(savedRestaurant);
     }
 
@@ -98,9 +88,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection) {
-        if (!accountRepository.existsById(vendorId)) {
-            throw new ResourceNotFoundException("Vendor not found with ID: " + vendorId);
-        }
+        Account vendor = accountService.getAccountById(vendorId);
 
         Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
                 Sort.Direction.DESC :
@@ -117,10 +105,18 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     @Transactional
-    public RestaurantDto updateRestaurant(UUID restaurantId, UpdateRestaurantRequest request) {
+    public RestaurantDto updateRestaurant(UUID restaurantId, UpdateRestaurantRequest request, UUID accessAccountId) {
+        Account accessingAccount = accountService.getAccountById(accessAccountId);
+
         var restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId));
 
+        UUID ownerId = restaurant.getOwnerAccount().getAccountId();
+        boolean isAdmin = accountService.isAdmin(accessAccountId);
+
+        if (!ownerId.equals(accessAccountId) && !isAdmin) {
+            throw new SecurityException("Bạn không có quyền chỉnh sửa thông tin nhà hàng này.");
+        }
 
         restaurantMapper.updateRestaurantFromRequest(request, restaurant);
 
@@ -139,9 +135,20 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     @Transactional
-    public void deleteRestaurant(UUID restaurantId) {
+    public void deleteRestaurant(UUID restaurantId, UUID accessAccountId) {
+        if (!accountService.isExist(accessAccountId)) {
+            throw new ResourceNotFoundException("Access Account not found with ID: " + accessAccountId);
+        }
+
         var restaurant = restaurantRepository.findById(restaurantId)
                         .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId));
+
+        UUID ownerId = restaurant.getOwnerAccount().getAccountId();
+        boolean isAdmin = accountService.isAdmin(accessAccountId);
+
+        if (!ownerId.equals(accessAccountId) && !isAdmin) {
+            throw new SecurityException("Bạn không có quyền chỉnh sửa thông tin nhà hàng này.");
+        }
 
         restaurantRepository.delete(restaurant);
     }
@@ -160,7 +167,7 @@ public class RestaurantServiceImpl implements RestaurantService {
             restaurant.setApprovalStatus(requestStatus);
             restaurant.setApprovedAt(LocalDateTime.now());
 
-            Account admin =accountRepository.getReferenceById(adminAccountId);
+            Account admin = accountService.getAccountById(adminAccountId);
             restaurant.setApprovedByAccount(admin);
 
             if (requestStatus == ApprovalStatus.REJECTED) {
@@ -187,5 +194,22 @@ public class RestaurantServiceImpl implements RestaurantService {
         }
 
         return restaurantMapper.toDto(restaurant);
+    }
+
+    @Override
+    public Page<RestaurantDto> getAllRestaurantsApproved(int page, int size, String sortBy, String sortDirection) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
+                Sort.Direction.DESC :
+                Sort.Direction.ASC;
+
+        Sort sort = Sort.by(direction, sortBy);
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Restaurant> restaurantPage = restaurantRepository.findAllByStatusAndApprovalStatus(pageable,
+                RestaurantStatus.ACTIVE,
+                ApprovalStatus.APPROVED);
+
+        return restaurantPage.map(restaurantMapper::toDto);
     }
 }

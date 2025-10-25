@@ -27,6 +27,11 @@ public class AccountServiceImpl implements AccountService {
         var account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with ID: " + accountId));
         return account;
+
+    }
+    @Override
+    public Boolean isExist(UUID accountId) {
+        return accountRepository.existsById(accountId);
     }
 
     @Override
@@ -37,5 +42,14 @@ public class AccountServiceImpl implements AccountService {
         return account.getAccountRoleMapSet().stream()
                 .map(AccountRoleMap::getRole)
                 .anyMatch(role -> "ADMIN".equals(role.getRoleName()));
+    }
+    @Override
+    public Boolean isVendor(UUID accountId) {
+        var account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with ID: " + accountId));
+
+        return account.getAccountRoleMapSet().stream()
+                .map(AccountRoleMap::getRole)
+                .anyMatch(role -> "VENDOR".equals(role.getRoleName()));
     }
 }

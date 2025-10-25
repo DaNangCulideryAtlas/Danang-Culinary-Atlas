@@ -1,5 +1,6 @@
 package com.atlasculinary.mappers;
 
+import com.atlasculinary.dtos.AddNotificationRequest;
 import com.atlasculinary.dtos.NotificationDto;
 import com.atlasculinary.entities.Notification;
 import org.mapstruct.Mapper;
@@ -13,4 +14,6 @@ public interface NotificationMapper {
     @Mapping(source = "isRead", target = "isRead")
     NotificationDto toDto(Notification notification);
     List<NotificationDto> toDtoList(List<Notification> notificationList);
+
+    Notification toEntity(AddNotificationRequest notificationRequest);
 }
