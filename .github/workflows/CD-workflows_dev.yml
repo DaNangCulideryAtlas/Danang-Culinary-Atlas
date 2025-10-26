@@ -43,6 +43,7 @@ jobs:
         run: |
           cat << EOF > .env
           DB_URL=${{ secrets.DB_URL }}
+          DB_PORT=${{ secrets.DB_PORT }}
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           SERVER_PORT=${{ secrets.SERVER_PORT }}
