@@ -2,25 +2,41 @@ name: Main CI/CD Pipeline with Approval
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "develop"]
   pull_request:
-    branches: ["master"]
+    branches: ["master", "develop"]
 
 jobs:
-  # Job 1: Build and create artifact
-  build:
-    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-ci-build.yml@ci-cd-workflows
-
-  # Job 2: Confirm deployment
-  confirm:
-    needs: build
+  # Production Jobs
+  build-prod:
     if: github.ref == 'refs/heads/master'
-    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-confirm.yml@ci-cd-workflows
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/CI-workflows_prod.yml@ci-cd-workflows
+  
+  confirm-prod:
+    needs: build-prod
+    if: github.ref == 'refs/heads/master'
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/Confirm-workflows_prod.yml@ci-cd-workflows
     secrets: inherit
 
-  # Job 3: Deploy application
-  deploy:
-    needs: [build, confirm]
-    if: github.ref == 'refs/heads/master' && needs.confirm.result == 'success'
-    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/reusable-cd-deploy.yml@ci-cd-workflows
+  deploy-prod:
+    needs: [build-prod, confirm-prod]
+    if: github.ref == 'refs/heads/master' && needs.confirm-prod.result == 'success'
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/CD-workflows_prod.yml@ci-cd-workflows
+    secrets: inherit
+
+  # Development Jobs
+  build-dev:
+    if: github.ref == 'refs/heads/develop'
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/CI-workflows_dev.yml@ci-cd-workflows
+  
+  confirm-dev:
+    needs: build-dev
+    if: github.ref == 'refs/heads/develop'
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/Confirm-workflows_dev.yml@ci-cd-workflows
+    secrets: inherit
+
+  deploy-dev:
+    needs: [build-dev, confirm-dev]
+    if: github.ref == 'refs/heads/develop' && needs.confirm-dev.result == 'success'
+    uses: DaNangCulideryAtlas/Danang-Culinary-Atlas/.github/workflows/CD-workflows_dev.yml@ci-cd-workflows
     secrets: inherit
