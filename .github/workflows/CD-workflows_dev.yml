@@ -56,13 +56,13 @@ jobs:
           EOF
           echo ".env file created successfully."
 
-      - name: Stop and remove old containers and networks
+      - name: Stop and remove old containers and networks (dev project only)
         working-directory: ${{ github.workspace }}
-        run: docker-compose -f docker-compose.dev.yml down || true
+        run: docker-compose -p dca-dev -f docker-compose.dev.yml down --remove-orphans || true
 
       - name: Clean up unused Docker images
-        run: docker image prune -a -f
+        run: docker image prune -f
 
       - name: Deploy with Docker Compose
         working-directory: ${{ github.workspace }}
-        run: docker-compose -f docker-compose.dev.yml up --build -d
+        run: docker-compose -p dca-dev -f docker-compose.dev.yml up --build -d
