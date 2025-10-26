@@ -25,7 +25,7 @@ on:
           required: true
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, prod-runner]
     environment: 
       name: production
     steps:
@@ -57,11 +57,11 @@ jobs:
 
       - name: Stop and remove old containers and networks
         working-directory: ${{ github.workspace }}
-        run: docker-compose down || true
+        run: docker-compose -f docker-compose.prod.yml down || true
 
       - name: Clean up unused Docker images
         run: docker image prune -a -f
 
       - name: Deploy with Docker Compose
         working-directory: ${{ github.workspace }}
-        run: docker-compose up --build -d
+        run: docker-compose -f docker-compose.prod.yml up --build -d
