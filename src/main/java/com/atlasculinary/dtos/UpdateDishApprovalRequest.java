@@ -1,14 +1,14 @@
 package com.atlasculinary.dtos;
 
 import com.atlasculinary.enums.ApprovalStatus;
-import lombok.Data;
 import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
+import lombok.Data;
 
 @Data
-public class UpdateApprovalStatusRequest {
+public class UpdateDishApprovalRequest {
 
-    private ApprovalStatus status;
+    @NotNull(message = "Approval status is required.")
+    private ApprovalStatus approvalStatus;
 
     private String rejectionReason;
 }

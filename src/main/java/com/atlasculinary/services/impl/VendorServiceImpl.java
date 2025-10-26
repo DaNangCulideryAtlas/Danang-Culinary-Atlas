@@ -6,20 +6,18 @@ import com.atlasculinary.mappers.VendorMapper;
 import com.atlasculinary.repositories.VendorRepository;
 import com.atlasculinary.services.VendorService;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class VendorServiceImpl implements VendorService {
     private final VendorRepository vendorRepository;
     private final VendorMapper vendorMapper;
 
-    public VendorServiceImpl(VendorMapper vendorMapper,
-                             VendorRepository vendorRepository) {
-        this.vendorMapper = vendorMapper;
-        this.vendorRepository = vendorRepository;
-    }
+
     @Override
     @Transactional
     public VendorDto getVendorById(UUID vendorId) {

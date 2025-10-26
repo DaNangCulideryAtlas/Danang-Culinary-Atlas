@@ -1,33 +1,30 @@
 package com.atlasculinary.mappers;
 
-import com.atlasculinary.dtos.VendorDto;
-import com.atlasculinary.entities.Account; // Cần import Account để sử dụng trong logic tùy chỉnh
-import com.atlasculinary.entities.VendorProfile;
+import com.atlasculinary.dtos.UserDto;
+import com.atlasculinary.entities.Account;
+import com.atlasculinary.entities.UserProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named; // Cần import Named
+import org.mapstruct.Named;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface VendorMapper {
+public interface UserMapper {
+
     @Mapping(source = "accountId", target = "accountId")
     @Mapping(source = "account.email", target = "email")
-    // Sử dụng logic tùy chỉnh để kiểm tra null/rỗng và tạo tên từ email
     @Mapping(source = "account", target = "fullName", qualifiedByName = "mapFullNameOrGenerate")
     @Mapping(source = "account.status", target = "status")
     @Mapping(source = "account.avatarUrl", target = "avatarUrl")
-    VendorDto toDto(VendorProfile vendor);
+    UserDto toDto(UserProfile user);
 
-    List<VendorDto> toDtoList(List<VendorProfile> vendorList);
+    List<UserDto> toDtoList(List<UserProfile> userList);
 
-    /**
-     * Phương thức mặc định để xử lý logic: Nếu fullName rỗng/null, tạo tên từ email.
-     */
     @Named("mapFullNameOrGenerate")
-    default String mapFullNameOrGenerate(Account account) {
-        String fullName = account.getFullName();
-        String email = account.getEmail();
+    default String mapFullNameOrGenerate(Account user) {
+        String fullName = user.getFullName();
+        String email = user.getEmail();
 
         // 1. Kiểm tra fullName có null hoặc rỗng (sau khi cắt khoảng trắng)
         if (fullName == null || fullName.trim().isEmpty()) {
@@ -39,11 +36,8 @@ public interface VendorMapper {
         return fullName;
     }
 
-    /**
-     * Hàm giả định để tạo tên từ email (ví dụ: "dngphclng@..." -> "Dngphclng")
-     */
     default String getNameFromEmail(String email) {
-        if (email == null) return "Unknown Vendor"; // Đổi tên dự phòng
+        if (email == null) return "Unknown User";
         // Lấy phần trước @ và viết hoa chữ cái đầu
         String username = email.split("@")[0];
         return username.substring(0, 1).toUpperCase() + username.substring(1);

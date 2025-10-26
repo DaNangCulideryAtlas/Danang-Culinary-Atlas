@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Backend Spring Boot Service - Production
+  app:
+    build: .
+    container_name: culinary-atlas-app-prod
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"  
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - culinary-network-prod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s 
+
+  # PostgreSQL Database Service - Production
+  db:
+    image: postgres:14-alpine
+    container_name: culinary-atlas-db-prod
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: danangatlasculinarydb_prod
+    volumes:
+      - db-data-prod:/var/lib/postgresql/data
+    networks:
+      - culinary-network-prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data-prod:
+
+networks:
+  culinary-network-prod:
+    driver: bridge

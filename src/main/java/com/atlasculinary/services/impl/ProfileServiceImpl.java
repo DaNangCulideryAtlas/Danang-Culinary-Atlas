@@ -1,10 +1,16 @@
 package com.atlasculinary.services.impl;
 
+import com.atlasculinary.dtos.AdminDto;
+import com.atlasculinary.dtos.UserDto;
+import com.atlasculinary.dtos.VendorDto;
 import com.atlasculinary.dtos.profile.*;
 import com.atlasculinary.entities.Account;
 import com.atlasculinary.entities.UserProfile;
 import com.atlasculinary.entities.AdminProfile;
 import com.atlasculinary.entities.VendorProfile;
+import com.atlasculinary.mappers.AdminMapper;
+import com.atlasculinary.mappers.UserMapper;
+import com.atlasculinary.mappers.VendorMapper;
 import com.atlasculinary.repositories.AccountRepository;
 import com.atlasculinary.repositories.AdminRepository;
 import com.atlasculinary.repositories.UserRepository;
@@ -23,25 +29,21 @@ public class ProfileServiceImpl implements ProfileService {
   private final UserRepository userRepository;
   private final AdminRepository adminRepository;
   private final VendorRepository vendorRepository;
+  private final UserMapper userMapper;
+  private final VendorMapper vendorMapper;
+  private final AdminMapper adminMapper;
 
   @Override
   @Transactional(readOnly = true)
-  public UserProfileResponseDto getUserProfile(String email) {
+  public UserDto getUserProfile(String email) {
     UserProfile userProfile = userRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
 
-    return UserProfileResponseDto.builder()
-            .userId(userProfile.getAccountId())
-            .email(userProfile.getAccount().getEmail())
-            .fullName(userProfile.getAccount().getFullName())
-            .avatarUrl(userProfile.getAccount().getAvatarUrl())
-            .dob(userProfile.getDob())
-            .gender(userProfile.getGender())
-            .build();
+    return userMapper.toDto(userProfile);
   }
 
   @Override
-  public UserProfileResponseDto updateUserProfile(String email, UserProfileUpdateDto updateDto) {
+  public UserDto updateUserProfile(String email, UserProfileUpdateDto updateDto) {
     UserProfile userProfile = userRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
 
@@ -64,34 +66,20 @@ public class ProfileServiceImpl implements ProfileService {
     accountRepository.save(account);
     UserProfile savedProfile = userRepository.save(userProfile);
 
-    return UserProfileResponseDto.builder()
-            .userId(savedProfile.getAccountId())
-            .email(savedProfile.getAccount().getEmail())
-            .fullName(savedProfile.getAccount().getFullName())
-            .avatarUrl(savedProfile.getAccount().getAvatarUrl())
-            .dob(savedProfile.getDob())
-            .gender(savedProfile.getGender())
-            .build();
+    return userMapper.toDto(savedProfile);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public AdminProfileResponseDto getAdminProfile(String email) {
+  public AdminDto getAdminProfile(String email) {
     AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
 
-    return AdminProfileResponseDto.builder()
-            .adminId(adminProfile.getAccountId())
-            .email(adminProfile.getAccount().getEmail())
-            .fullName(adminProfile.getAccount().getFullName())
-            .avatarUrl(adminProfile.getAccount().getAvatarUrl())
-            .phone(adminProfile.getPhone())
-            .roleLevel(adminProfile.getRoleLevel())
-            .build();
+    return adminMapper.toDto(adminProfile);
   }
 
   @Override
-  public AdminProfileResponseDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto) {
+  public AdminDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto) {
     AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
 
@@ -111,38 +99,20 @@ public class ProfileServiceImpl implements ProfileService {
     accountRepository.save(account);
     AdminProfile savedProfile = adminRepository.save(adminProfile);
 
-    return AdminProfileResponseDto.builder()
-            .adminId(savedProfile.getAccountId())
-            .email(savedProfile.getAccount().getEmail())
-            .fullName(savedProfile.getAccount().getFullName())
-            .avatarUrl(savedProfile.getAccount().getAvatarUrl())
-            .phone(savedProfile.getPhone())
-            .roleLevel(savedProfile.getRoleLevel())
-            .build();
+    return adminMapper.toDto(savedProfile);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public VendorProfileResponseDto getVendorProfile(String email) {
+  public VendorDto getVendorProfile(String email) {
     VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
 
-    return VendorProfileResponseDto.builder()
-            .vendorId(vendorProfile.getAccountId())
-            .email(vendorProfile.getAccount().getEmail())
-            .fullName(vendorProfile.getAccount().getFullName())
-            .avatarUrl(vendorProfile.getAccount().getAvatarUrl())
-            .phone(vendorProfile.getPhone())
-            .description(vendorProfile.getDescription())
-//            .businessLicenseNumber(vendorProfile.getBusinessLicense() != null ?
-//                vendorProfile.getBusinessLicense().getLicenseNumber() : null)
-//            .businessLicenseStatus(vendorProfile.getBusinessLicense() != null ?
-//                vendorProfile.getBusinessLicense().getApprovalStatus().name() : null)
-            .build();
+    return vendorMapper.toDto(vendorProfile);
   }
 
   @Override
-  public VendorProfileResponseDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto) {
+  public VendorDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto) {
     VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
 
@@ -165,17 +135,6 @@ public class ProfileServiceImpl implements ProfileService {
     accountRepository.save(account);
     VendorProfile savedProfile = vendorRepository.save(vendorProfile);
 
-    return VendorProfileResponseDto.builder()
-            .vendorId(savedProfile.getAccountId())
-            .email(savedProfile.getAccount().getEmail())
-            .fullName(savedProfile.getAccount().getFullName())
-            .avatarUrl(savedProfile.getAccount().getAvatarUrl())
-            .phone(savedProfile.getPhone())
-            .description(savedProfile.getDescription())
-//            .businessLicenseNumber(savedProfile.getBusinessLicense() != null ?
-//                savedProfile.getBusinessLicense().getLicenseNumber() : null)
-//            .businessLicenseStatus(savedProfile.getBusinessLicense() != null ?
-//                savedProfile.getBusinessLicense().getApprovalStatus().name() : null)
-            .build();
+    return vendorMapper.toDto(savedProfile);
   }
 }

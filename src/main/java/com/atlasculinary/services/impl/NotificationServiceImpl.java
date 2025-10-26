@@ -95,7 +95,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<AdminDto> adminDtoList = adminService.getAllAdmins();
             for (var adminDto: adminDtoList) {
                 String adminEmail = adminDto.getEmail();
-                UUID adminId = adminDto.getAdminId();
+                UUID adminId = adminDto.getAccountId();
                 UUID adminAccountId = adminDto.getAccountId();
 
                 sendEmail(adminEmail, subject, content);
@@ -182,12 +182,8 @@ public class NotificationServiceImpl implements NotificationService {
 
         Account recipientAccount = accountService.getAccountById(request.getAccountId());
 
-        Notification notification = new Notification();
+        Notification notification = notificationMapper.toEntity(request);
         notification.setAccount(recipientAccount);
-        notification.setTitle(request.getTitle());
-        notification.setMessage(request.getMessage());
-        notification.setType(request.getType());
-        notification.setTargetUrl(request.getTargetUrl());
         notification.setIsRead(false);
 
         notificationRepository.save(notification);
