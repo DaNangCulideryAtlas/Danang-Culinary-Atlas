@@ -1,4 +1,5 @@
-FROM openjdk:21-jdk-slim
+# FROM openjdk:21-jdk-slim
+FROM public.ecr.aws/docker/library/openjdk:21-jdk-slim
 
 WORKDIR /app
 
