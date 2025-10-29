@@ -59,7 +59,6 @@ public class SecurityConfig {
             "/api/v1/restaurants/**",
             "/api/v1/dishes/**",
             "/api/v1/reviews/**",
-            "/api/v1/reports/**",
             "/api/v1/restaurants/*/dishes",
             "/api/v1/restaurants/*/reviews",
             "/api/v1/dishes/*/reviews"
@@ -103,6 +102,7 @@ public class SecurityConfig {
 
               //8. REPORT
               .requestMatchers(HttpMethod.POST, "/api/v1/reports/**").hasAnyAuthority("USER", "VENDOR")
+              .requestMatchers(HttpMethod.PUT, "/api/v1/reports/admin/**").hasAuthority("ADMIN")
 
               // 9. CATCH-ALL: Tất cả các request còn lại phải được xác thực
               .anyRequest().authenticated()
