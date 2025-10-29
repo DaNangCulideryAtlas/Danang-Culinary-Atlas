@@ -2,6 +2,7 @@ package com.atlasculinary.services.impl;
 
 import com.atlasculinary.dtos.ReportRequest;
 import com.atlasculinary.dtos.ReportResponse;
+import com.atlasculinary.dtos.ReportStatisticsResponse;
 import com.atlasculinary.entities.*;
 import com.atlasculinary.enums.ReportStatus;
 import com.atlasculinary.repositories.ReportRepository;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,6 +68,28 @@ public class ReportServiceImpl implements ReportService {
     public List<ReportResponse> getAllReports() {
         return reportRepository.findAll()
                 .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ReportResponse updateReportStatus(UUID reportId, ReportStatus status, String adminUsername) {
+        Report report = reportRepository.findById(reportId).orElseThrow(() -> new RuntimeException("Report not found"));
+        Account admin = accountRepository.findByEmail(adminUsername).orElseThrow(() -> new RuntimeException("Admin not found"));
+        report.setStatus(status);
+        report.setProcessedByAccount(admin);
+        report.setProcessedAt(LocalDateTime.now());
+        report = reportRepository.save(report);
+        return toResponse(report);
+    }
+
+    @Override
+    public ReportStatisticsResponse getReportStatistics() {
+        List<Report> allReports = reportRepository.findAll();
+        long total = allReports.size();
+        long pending = allReports.stream().filter(r -> r.getStatus() == ReportStatus.PENDING).count();
+        long resolved = allReports.stream().filter(r -> r.getStatus() == ReportStatus.RESOLVED).count();
+        long rejected = allReports.stream().filter(r -> r.getStatus() == ReportStatus.REJECTED).count();
+        return new ReportStatisticsResponse(total, pending, resolved, rejected);
     }
 
     private ReportResponse toResponse(Report report) {
