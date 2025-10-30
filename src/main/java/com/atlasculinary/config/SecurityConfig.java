@@ -65,9 +65,10 @@ public class SecurityConfig {
     };
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http,  CorsConfig corsConfig) throws Exception {
     http
-      .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .authorizeHttpRequests(auth -> auth
               // 1. PUBLIC BASE URLS (Luôn cho phép)
