@@ -53,6 +53,8 @@ jobs:
           SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
           SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
           SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          URL_ALLOWED_CORS=${{ secrets.URL_ALLOWED_CORS }}
           EOF
           echo ".env file created successfully."
 
