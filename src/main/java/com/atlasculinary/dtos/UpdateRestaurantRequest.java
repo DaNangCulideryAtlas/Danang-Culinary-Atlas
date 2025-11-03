@@ -13,7 +13,7 @@ public class UpdateRestaurantRequest {
 
     private String address;
 
-    private String[] images;
+    private Map<String, Object> images;
 
     private Integer wardId;
 

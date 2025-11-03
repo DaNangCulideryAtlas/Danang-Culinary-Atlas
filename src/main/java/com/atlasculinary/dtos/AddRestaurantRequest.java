@@ -18,7 +18,7 @@ public class AddRestaurantRequest {
     @NotBlank(message = "Address is required")
     private String address;
 
-    private String[] images;
+    private Map<String, Object> images;
 
     @NotNull(message = "Ward ID is required")
     private Integer wardId;

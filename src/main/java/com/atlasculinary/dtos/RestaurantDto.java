@@ -17,7 +17,7 @@ public class RestaurantDto {
 
     private String address;
 
-    private String[] images;
+    private Map<String, Object> images;
 
     private int wardId;
 
