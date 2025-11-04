@@ -14,32 +14,22 @@ public interface UserMapper {
 
     @Mapping(source = "accountId", target = "accountId")
     @Mapping(source = "account.email", target = "email")
-    @Mapping(source = "account", target = "fullName", qualifiedByName = "mapFullNameOrGenerate")
+    @Mapping(
+            target = "fullName",
+            expression = "java(" +
+                    "userProfile.getAccount() != null && " +
+                    "userProfile.getAccount().getFullName() != null && " +
+                    "!userProfile.getAccount().getFullName().trim().isEmpty() " +
+                    "? userProfile.getAccount().getFullName() " +
+                    ": com.atlasculinary.utils.NameUtil.getNameFromEmail(" +
+                    "userProfile.getAccount() != null ? userProfile.getAccount().getEmail() : null)" +
+                    ")"
+    )
     @Mapping(source = "account.status", target = "status")
     @Mapping(source = "account.avatarUrl", target = "avatarUrl")
-    UserDto toDto(UserProfile user);
+    UserDto toDto(UserProfile userProfile);
 
     List<UserDto> toDtoList(List<UserProfile> userList);
 
-    @Named("mapFullNameOrGenerate")
-    default String mapFullNameOrGenerate(Account user) {
-        String fullName = user.getFullName();
-        String email = user.getEmail();
 
-        // 1. Kiểm tra fullName có null hoặc rỗng (sau khi cắt khoảng trắng)
-        if (fullName == null || fullName.trim().isEmpty()) {
-            // 2. Nếu rỗng/null, gọi hàm getName(email)
-            return getNameFromEmail(email);
-        }
-
-        // 3. Nếu hợp lệ, trả về fullName
-        return fullName;
-    }
-
-    default String getNameFromEmail(String email) {
-        if (email == null) return "Unknown User";
-        // Lấy phần trước @ và viết hoa chữ cái đầu
-        String username = email.split("@")[0];
-        return username.substring(0, 1).toUpperCase() + username.substring(1);
-    }
 }
