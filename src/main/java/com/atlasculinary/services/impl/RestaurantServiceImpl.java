@@ -1,10 +1,7 @@
 package com.atlasculinary.services.impl;
 
 import com.atlasculinary.dtos.*;
-import com.atlasculinary.entities.Account;
-import com.atlasculinary.entities.AdminProfile;
-import com.atlasculinary.entities.Restaurant;
-import com.atlasculinary.entities.Ward;
+import com.atlasculinary.entities.*;
 import com.atlasculinary.enums.ApprovalStatus;
 import com.atlasculinary.enums.RestaurantStatus;
 import com.atlasculinary.exceptions.InvalidRequestException;
@@ -14,6 +11,7 @@ import com.atlasculinary.repositories.*;
 import com.atlasculinary.services.AccountService;
 import com.atlasculinary.services.NotificationService;
 import com.atlasculinary.services.RestaurantService;
+import com.atlasculinary.services.RestaurantStatsService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.hibernate.metamodel.spi.ValueAccess;
@@ -23,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +35,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final AccountService accountService;
     private final WardRepository wardRepository;
     private final RestaurantMapper restaurantMapper;
+    private final RestaurantStatsRepository restaurantStatsRepository;
     private final NotificationService notificationService;
 
 
@@ -46,7 +46,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         var vendor = accountService.getAccountById(ownerAccountId);
 
         var ward = wardRepository.findById(request.getWardId())
-                .orElseThrow(() -> new ResourceNotFoundException("Ward not found with ID: " +ownerAccountId));
+                .orElseThrow(() -> new ResourceNotFoundException("Ward not found with ID: " + request.getWardId()));
 
         Restaurant restaurant = restaurantMapper.toEntity(request);
 
@@ -56,6 +56,9 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurant.setCreatedAt(LocalDateTime.now());
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
+        RestaurantStats newStats = new RestaurantStats();
+        newStats.setRestaurant(savedRestaurant);
+        restaurantStatsRepository.save(newStats);
 
         notificationService.notifyAdminNewRestaurantSubmission(restaurant.getRestaurantId());
         return restaurantMapper.toDto(savedRestaurant);
@@ -211,5 +214,34 @@ public class RestaurantServiceImpl implements RestaurantService {
                 ApprovalStatus.APPROVED);
 
         return restaurantPage.map(restaurantMapper::toDto);
+    }
+
+    private BigDecimal getMinRatingForZoom(int zoomLevel) {
+        if (zoomLevel <= 10) {
+            return new BigDecimal("4.5"); // 10 trở xuống: >= 4.5
+        } else if (zoomLevel <= 13) {
+            return new BigDecimal("4.0"); // 11-13: >= 4.0
+        } else if (zoomLevel <= 15) {
+            return new BigDecimal("3.5"); // 14-15: >= 3.5
+        } else { // zoomLevel >= 16
+            return new BigDecimal("0.0"); // 16 trở lên: Hiển thị tất cả
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<RestaurantDto> getRestaurantsInMapView(
+            int zoomLevel,
+            BigDecimal minLat,
+            BigDecimal maxLat,
+            BigDecimal minLng,
+            BigDecimal maxLng)
+    {
+        BigDecimal minRating = getMinRatingForZoom(zoomLevel);
+        List<Restaurant> restaurants = restaurantRepository.findRestaurantsInArea(
+                minLat, maxLat, minLng, maxLng, minRating);
+
+
+        return restaurantMapper.toDtoList(restaurants);
     }
 }

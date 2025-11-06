@@ -47,23 +47,7 @@ public class ProfileServiceImpl implements ProfileService {
     UserProfile userProfile = userRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
 
-    Account account = userProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getDob() != null) {
-      userProfile.setDob(updateDto.getDob());
-    }
-    if (updateDto.getGender() != null) {
-      userProfile.setGender(updateDto.getGender());
-    }
-
-    accountRepository.save(account);
+    userMapper.updateEntityFromRequest(updateDto, userProfile);
     UserProfile savedProfile = userRepository.save(userProfile);
 
     return userMapper.toDto(savedProfile);
@@ -83,20 +67,7 @@ public class ProfileServiceImpl implements ProfileService {
     AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
 
-    Account account = adminProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getPhone() != null) {
-      adminProfile.setPhone(updateDto.getPhone());
-    }
-
-    accountRepository.save(account);
+    adminMapper.updateEntityFromRequest(updateDto, adminProfile);
     AdminProfile savedProfile = adminRepository.save(adminProfile);
 
     return adminMapper.toDto(savedProfile);
@@ -116,23 +87,7 @@ public class ProfileServiceImpl implements ProfileService {
     VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
 
-    Account account = vendorProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getPhone() != null) {
-      vendorProfile.setPhone(updateDto.getPhone());
-    }
-    if (updateDto.getDescription() != null) {
-      vendorProfile.setDescription(updateDto.getDescription());
-    }
-
-    accountRepository.save(account);
+    vendorMapper.updateEntityFromRequest(updateDto, vendorProfile);
     VendorProfile savedProfile = vendorRepository.save(vendorProfile);
 
     return vendorMapper.toDto(savedProfile);

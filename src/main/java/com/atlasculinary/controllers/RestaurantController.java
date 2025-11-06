@@ -4,6 +4,7 @@ import com.atlasculinary.dtos.AddRestaurantRequest;
 import com.atlasculinary.dtos.RestaurantDto;
 import com.atlasculinary.dtos.UpdateApprovalStatusRequest;
 import com.atlasculinary.dtos.UpdateRestaurantRequest;
+import com.atlasculinary.enums.ApprovalStatus;
 import com.atlasculinary.securities.CustomAccountDetails;
 import com.atlasculinary.services.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -89,6 +92,28 @@ public class RestaurantController {
         // Service chỉ trả về các nhà hàng đã APPROVED
         Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurantsApproved(page, size, sortBy, sortDirection);
         return ResponseEntity.ok(restaurantsPage);
+    }
+
+    @GetMapping("/restaurants/map-view")
+    public List<RestaurantDto> getRestaurantsInMapView(
+            @RequestParam(defaultValue = "15") int zoomLevel,
+            @RequestParam(required = false) BigDecimal minLat,
+            @RequestParam(required = false) BigDecimal maxLat,
+            @RequestParam(required = false) BigDecimal minLng,
+            @RequestParam(required = false) BigDecimal maxLng)
+    {
+        BigDecimal defaultMinLat = minLat != null ? minLat : new BigDecimal("-90.0");
+        BigDecimal defaultMaxLat = maxLat != null ? maxLat : new BigDecimal("90.0");
+        BigDecimal defaultMinLng = minLng != null ? minLng : new BigDecimal("-180.0");
+        BigDecimal defaultMaxLng = maxLng != null ? maxLng : new BigDecimal("180.0");
+
+        return restaurantService.getRestaurantsInMapView(
+                zoomLevel,
+                defaultMinLat,
+                defaultMaxLat,
+                defaultMinLng,
+                defaultMaxLng
+        );
     }
 
     // =================================================================
