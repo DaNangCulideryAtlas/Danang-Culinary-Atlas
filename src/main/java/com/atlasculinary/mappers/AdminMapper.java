@@ -1,11 +1,12 @@
 package com.atlasculinary.mappers;
 
 import com.atlasculinary.dtos.AdminDto;
+import com.atlasculinary.dtos.profile.AdminProfileUpdateDto;
+import com.atlasculinary.dtos.profile.VendorProfileUpdateDto;
 import com.atlasculinary.entities.Account; // Cần import Account
 import com.atlasculinary.entities.AdminProfile;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named; // Cần import Named
+import com.atlasculinary.entities.VendorProfile;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -27,9 +28,11 @@ public interface AdminMapper {
     )
     @Mapping(source = "account.status", target = "status")
     @Mapping(source = "account.avatarUrl", target = "avatarUrl")
+    @Mapping(source = "gender", target= "gender")
     AdminDto toDto(AdminProfile adminProfile);
 
     List<AdminDto> toDtoList(List<AdminProfile> adminList);
 
-
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromRequest(AdminProfileUpdateDto request, @MappingTarget AdminProfile targetEntity);
 }

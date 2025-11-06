@@ -1,5 +1,6 @@
 package com.atlasculinary.entities;
 
+import com.atlasculinary.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID; // Cần import UUID
 
@@ -31,6 +33,13 @@ public class VendorProfile {
 
     @Column(name = "phone", length = 15)
     private String phone;
+
+    @Column(name = "dob")
+    private LocalDate dob;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 10)
+    private Gender gender;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;

@@ -78,4 +78,7 @@ public class Restaurant {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "opening_hours", columnDefinition = "json")
     private Map<String, Object> openingHours;
+
+    @OneToOne(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private RestaurantStats restaurantStats;
 }

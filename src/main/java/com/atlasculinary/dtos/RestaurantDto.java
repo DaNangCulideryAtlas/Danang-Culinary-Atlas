@@ -38,4 +38,8 @@ public class RestaurantDto {
     private BigDecimal longitude;
 
     private Map<String, Object> openingHours;
+
+    private BigDecimal averageRating;
+
+    private Integer totalReviews;
 }

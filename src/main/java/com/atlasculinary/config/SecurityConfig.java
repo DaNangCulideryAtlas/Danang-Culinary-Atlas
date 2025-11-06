@@ -50,7 +50,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/webjars/**",
-            "/api/v1/auth/**"
+            "/api/v1/auth/**",
+            "/api/v1/locations/**"
     };
 
     // URI cho phép truy cập GET công khai (tài nguyên chính và tài nguyên con để đọc)
@@ -61,7 +62,7 @@ public class SecurityConfig {
             "/api/v1/reviews/**",
             "/api/v1/restaurants/*/dishes",
             "/api/v1/restaurants/*/reviews",
-            "/api/v1/dishes/*/reviews"
+            "/api/v1/dishes/*/reviews",
     };
 
   @Bean
