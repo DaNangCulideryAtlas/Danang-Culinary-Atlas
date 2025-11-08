@@ -25,116 +25,71 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ProfileServiceImpl implements ProfileService {
 
-  private final AccountRepository accountRepository;
-  private final UserRepository userRepository;
-  private final AdminRepository adminRepository;
-  private final VendorRepository vendorRepository;
-  private final UserMapper userMapper;
-  private final VendorMapper vendorMapper;
-  private final AdminMapper adminMapper;
+    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final VendorRepository vendorRepository;
+    private final UserMapper userMapper;
+    private final VendorMapper vendorMapper;
+    private final AdminMapper adminMapper;
 
-  @Override
-  @Transactional(readOnly = true)
-  public UserDto getUserProfile(String email) {
-    UserProfile userProfile = userRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+    @Override
+    @Transactional(readOnly = true)
+    public UserDto getUserProfile(String email) {
+        UserProfile userProfile = userRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
 
-    return userMapper.toDto(userProfile);
-  }
-
-  @Override
-  public UserDto updateUserProfile(String email, UserProfileUpdateDto updateDto) {
-    UserProfile userProfile = userRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-
-    Account account = userProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getDob() != null) {
-      userProfile.setDob(updateDto.getDob());
-    }
-    if (updateDto.getGender() != null) {
-      userProfile.setGender(updateDto.getGender());
+        return userMapper.toDto(userProfile);
     }
 
-    accountRepository.save(account);
-    UserProfile savedProfile = userRepository.save(userProfile);
+    @Override
+    public UserDto updateUserProfile(String email, UserProfileUpdateDto updateDto) {
+        UserProfile userProfile = userRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
 
-    return userMapper.toDto(savedProfile);
-  }
+        userMapper.updateEntityFromRequest(updateDto, userProfile);
+        UserProfile savedProfile = userRepository.save(userProfile);
 
-  @Override
-  @Transactional(readOnly = true)
-  public AdminDto getAdminProfile(String email) {
-    AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
-
-    return adminMapper.toDto(adminProfile);
-  }
-
-  @Override
-  public AdminDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto) {
-    AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
-
-    Account account = adminProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getPhone() != null) {
-      adminProfile.setPhone(updateDto.getPhone());
+        return userMapper.toDto(savedProfile);
     }
 
-    accountRepository.save(account);
-    AdminProfile savedProfile = adminRepository.save(adminProfile);
+    @Override
+    @Transactional(readOnly = true)
+    public AdminDto getAdminProfile(String email) {
+        AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
 
-    return adminMapper.toDto(savedProfile);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public VendorDto getVendorProfile(String email) {
-    VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
-
-    return vendorMapper.toDto(vendorProfile);
-  }
-
-  @Override
-  public VendorDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto) {
-    VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
-
-    Account account = vendorProfile.getAccount();
-    
-    if (updateDto.getFullName() != null) {
-      account.setFullName(updateDto.getFullName());
-    }
-    if (updateDto.getAvatarUrl() != null) {
-      account.setAvatarUrl(updateDto.getAvatarUrl());
-    }
-    
-    if (updateDto.getPhone() != null) {
-      vendorProfile.setPhone(updateDto.getPhone());
-    }
-    if (updateDto.getDescription() != null) {
-      vendorProfile.setDescription(updateDto.getDescription());
+        return adminMapper.toDto(adminProfile);
     }
 
-    accountRepository.save(account);
-    VendorProfile savedProfile = vendorRepository.save(vendorProfile);
+    @Override
+    public AdminDto updateAdminProfile(String email, AdminProfileUpdateDto updateDto) {
+        AdminProfile adminProfile = adminRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin quản trị viên"));
 
-    return vendorMapper.toDto(savedProfile);
-  }
+        adminMapper.updateEntityFromRequest(updateDto, adminProfile);
+        AdminProfile savedProfile = adminRepository.save(adminProfile);
+
+        return adminMapper.toDto(savedProfile);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VendorDto getVendorProfile(String email) {
+        VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
+
+        return vendorMapper.toDto(vendorProfile);
+    }
+
+    @Override
+    public VendorDto updateVendorProfile(String email, VendorProfileUpdateDto updateDto) {
+        VendorProfile vendorProfile = vendorRepository.findByAccountEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà cung cấp"));
+
+        vendorMapper.updateEntityFromRequest(updateDto, vendorProfile);
+        VendorProfile savedProfile = vendorRepository.save(vendorProfile);
+
+        return vendorMapper.toDto(savedProfile);
+    }
 }

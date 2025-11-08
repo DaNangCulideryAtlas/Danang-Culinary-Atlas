@@ -7,6 +7,7 @@ import com.atlasculinary.dtos.UpdateRestaurantRequest;
 import com.atlasculinary.enums.ApprovalStatus;
 import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,16 @@ public interface RestaurantService {
 
 
     Page<RestaurantDto> getAllRestaurants(int page, int size, String sortBy, String sortDirection);
+
+    Page<RestaurantDto> searchApprovedRestaurants(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection,
+            List<String> cuisineTypes,    // Lọc theo Loại Quán Ăn
+            BigDecimal minRating,         // Lọc theo Rating Tối thiểu
+            BigDecimal maxRating          // Lọc theo Rating Tối đa
+    );
 
     Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection);
 
@@ -36,4 +47,6 @@ public interface RestaurantService {
     );
 
     Page<RestaurantDto> getAllRestaurantsApproved(int page, int size, String sortBy, String sortDirection);
+
+    List<RestaurantDto> getRestaurantsInMapView(int zoomLevel, BigDecimal minLat, BigDecimal maxLat, BigDecimal minLong, BigDecimal maxLong);
 }

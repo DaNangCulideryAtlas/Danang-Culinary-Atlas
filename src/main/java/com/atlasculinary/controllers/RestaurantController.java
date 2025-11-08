@@ -4,6 +4,7 @@ import com.atlasculinary.dtos.AddRestaurantRequest;
 import com.atlasculinary.dtos.RestaurantDto;
 import com.atlasculinary.dtos.UpdateApprovalStatusRequest;
 import com.atlasculinary.dtos.UpdateRestaurantRequest;
+import com.atlasculinary.enums.ApprovalStatus;
 import com.atlasculinary.securities.CustomAccountDetails;
 import com.atlasculinary.services.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,11 +13,15 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,10 +38,11 @@ public class RestaurantController {
     // =================================================================
 
     @Operation(summary = "Create a new restaurant (by Vendor or Admin)")
-    @PostMapping("/restaurants")
     @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
-    ResponseEntity<RestaurantDto> createRestaurant(@Valid @RequestBody AddRestaurantRequest addRestaurantRequest,
-                                                   @AuthenticationPrincipal CustomAccountDetails principal) {
+    @PutMapping("/restaurants")
+    public ResponseEntity<RestaurantDto> createRestaurant(
+            @RequestBody @Valid AddRestaurantRequest addRestaurantRequest,
+            @AuthenticationPrincipal CustomAccountDetails principal) {
         var ownerAccountId = principal.getAccountId();
         // Service sẽ gán principal.accountId làm Owner của nhà hàng
         var restaurantDto = restaurantService.createRestaurant(ownerAccountId, addRestaurantRequest);
@@ -89,6 +95,54 @@ public class RestaurantController {
         // Service chỉ trả về các nhà hàng đã APPROVED
         Page<RestaurantDto> restaurantsPage = restaurantService.getAllRestaurantsApproved(page, size, sortBy, sortDirection);
         return ResponseEntity.ok(restaurantsPage);
+    }
+
+    @GetMapping("restaurants/search")
+    public ResponseEntity<Page<RestaurantDto>> searchRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "average_rating") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(required = false) List<String> cuisineTypes,
+            @RequestParam(defaultValue = "0.0") BigDecimal minRating,
+            @RequestParam(defaultValue = "5.0") BigDecimal maxRating)
+    {
+
+        Page<RestaurantDto> resultPage = restaurantService.searchApprovedRestaurants(
+                page,
+                size,
+                sortBy,
+                sortDirection,
+                cuisineTypes,
+                minRating,
+                maxRating
+        );
+
+        return ResponseEntity.ok(resultPage);
+    }
+
+    @GetMapping("/restaurants/map-view")
+    public ResponseEntity<List<RestaurantDto>> getRestaurantsInMapView(
+            @RequestParam(defaultValue = "15") int zoomLevel,
+            @RequestParam(required = false) BigDecimal minLat,
+            @RequestParam(required = false) BigDecimal maxLat,
+            @RequestParam(required = false) BigDecimal minLng,
+            @RequestParam(required = false) BigDecimal maxLng)
+    {
+        BigDecimal defaultMinLat = minLat != null ? minLat : new BigDecimal("-90.0");
+        BigDecimal defaultMaxLat = maxLat != null ? maxLat : new BigDecimal("90.0");
+        BigDecimal defaultMinLng = minLng != null ? minLng : new BigDecimal("-180.0");
+        BigDecimal defaultMaxLng = maxLng != null ? maxLng : new BigDecimal("180.0");
+
+        List<RestaurantDto> restaurantDtoList =  restaurantService.getRestaurantsInMapView(
+                zoomLevel,
+                defaultMinLat,
+                defaultMaxLat,
+                defaultMinLng,
+                defaultMaxLng
+        );
+        return ResponseEntity.ok(restaurantDtoList);
+
     }
 
     // =================================================================

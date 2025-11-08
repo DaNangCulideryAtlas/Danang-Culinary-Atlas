@@ -17,7 +17,7 @@ public class RestaurantDto {
 
     private String address;
 
-    private String[] images;
+    private Map<String, Object> images;
 
     private int wardId;
 
@@ -38,4 +38,8 @@ public class RestaurantDto {
     private BigDecimal longitude;
 
     private Map<String, Object> openingHours;
+
+    private BigDecimal averageRating = BigDecimal.ZERO;
+
+    private Integer totalReviews = 0;
 }

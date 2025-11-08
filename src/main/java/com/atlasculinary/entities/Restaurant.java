@@ -41,7 +41,7 @@ public class Restaurant {
     
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "images", columnDefinition = "json")
-    private String[] images;
+    private Map<String, Object> images;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ward_id", nullable = false)
@@ -78,4 +78,7 @@ public class Restaurant {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "opening_hours", columnDefinition = "json")
     private Map<String, Object> openingHours;
+
+    @OneToOne(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private RestaurantStats restaurantStats;
 }

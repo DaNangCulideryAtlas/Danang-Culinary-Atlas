@@ -2,11 +2,6 @@ package com.atlasculinary.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.UuidGenerator;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,33 +9,34 @@ import java.util.UUID;
 @Entity
 @Table(name = "restaurant_stats")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class RestaurantStats {
-
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @UuidGenerator
-    @Column(name = "stats_id", columnDefinition = "UUID")
-    private UUID statsId;
+    @Column(name = "restaurant_id")
+    private UUID restaurantId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", unique = true, nullable = false)
-    private Restaurant restaurant;
+    @Column(name = "total_reviews", nullable = false)
+    private Integer totalReviews = 0;
 
-    @Column(name = "views", nullable = false)
-    private Long views = 0L;
+    @Column(name = "sum_of_ratings", nullable = false)
+    private Integer sumOfRatings = 0;
 
-    @Column(name = "searches", nullable = false)
-    private Long searches = 0L;
+    @Column(name = "average_rating", precision = 2, scale = 1, nullable = false)
+    private BigDecimal averageRating = BigDecimal.ZERO;
 
-    @Column(name = "checkins", nullable = false)
-    private Long checkins = 0L;
+    @Column(name = "total_searches", nullable = false)
+    private Long totalSearches = 0L;
 
-    @Column(name = "avg_rating", precision = 3, scale = 2)
-    private BigDecimal avgRating;
-    
-    @UpdateTimestamp
+    @Column(name = "total_views", nullable = false)
+    private Long totalViews = 0L;
+
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
 }

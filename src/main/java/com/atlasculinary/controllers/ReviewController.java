@@ -72,7 +72,6 @@ public class ReviewController {
     }
 
 
-
     @Operation(summary = "Get reviews by restaurant ID")
     @GetMapping("/restaurants/{restaurantId}/reviews")
     public ResponseEntity<Page<ReviewDto>> getReviewsByRestaurant(

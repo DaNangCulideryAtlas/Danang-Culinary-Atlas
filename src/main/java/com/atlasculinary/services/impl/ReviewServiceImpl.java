@@ -8,9 +8,7 @@ import com.atlasculinary.exceptions.ResourceNotFoundException;
 import com.atlasculinary.mappers.ReviewMapper;
 import com.atlasculinary.repositories.RestaurantRepository;
 import com.atlasculinary.repositories.ReviewRepository;
-import com.atlasculinary.services.AccountService;
-import com.atlasculinary.services.RestaurantService;
-import com.atlasculinary.services.ReviewService;
+import com.atlasculinary.services.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -28,6 +28,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final AccountService accountService;
     private final RestaurantRepository restaurantRepository;
+    private final RestaurantStatsService restaurantStatsService;
+    private final NotificationService notificationService;
     private final ReviewMapper reviewMapper;
 
     @Override
@@ -41,7 +43,18 @@ public class ReviewServiceImpl implements ReviewService {
         Account user = accountService.getAccountById(userId);
         review.setRestaurant(restaurant);
         review.setReviewerAccount(user);
+        review.setCreatedAt(LocalDateTime.now());
         var reviewSaved = reviewRepository.save(review);
+
+        Integer newRating = reviewSaved.getRating();
+        // Notifications
+        notificationService.notifyVendorNewUserReview(reviewSaved.getReviewId());
+        // RestaurantStats
+        restaurantStatsService.updateStatsOnReviewEvent(
+                restaurantId,
+                null,
+                newRating
+        );
         return reviewMapper.toDto(reviewSaved);
     }
 
@@ -51,6 +64,8 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(()-> new ResourceNotFoundException("Review not found with ID: " + reviewId));
 
+        Integer oldRating = review.getRating();
+        UUID restaurantId = review.getRestaurant().getRestaurantId();
         UUID ownerId = review.getReviewerAccount().getAccountId();
         boolean isAdmin = accountService.isAdmin(userId);
 
@@ -60,6 +75,14 @@ public class ReviewServiceImpl implements ReviewService {
 
         reviewMapper.updateEntityFromRequest(request, review);
         var reviewUpdated = reviewRepository.save(review);
+
+        Integer newRating = reviewUpdated.getRating();
+        // RestaurantStats
+        restaurantStatsService.updateStatsOnReviewEvent(
+                restaurantId,
+                oldRating,
+                newRating
+        );
         return reviewMapper.toDto(reviewUpdated);
     }
 
@@ -69,13 +92,20 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(()-> new ResourceNotFoundException("Review not found with ID: " + reviewId));
 
+        UUID restaurantId = review.getRestaurant().getRestaurantId();
+        Integer oldRating = review.getRating();
         UUID ownerId = review.getReviewerAccount().getAccountId();
         boolean isAdmin = accountService.isAdmin(userId);
 
         if (!ownerId.equals(userId) && !isAdmin) {
             throw new SecurityException("Bạn không có quyền sửa bình luận này.");
         }
-
+        // RestaurantStats
+        restaurantStatsService.updateStatsOnReviewEvent(
+                restaurantId,
+                oldRating,
+                null
+        );
         reviewRepository.delete(review);
     }
 
