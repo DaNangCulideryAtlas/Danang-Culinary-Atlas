@@ -1,5 +1,6 @@
 package com.atlasculinary.services.impl;
 
+import com.atlasculinary.dtos.ChangePasswordRequest;
 import com.atlasculinary.dtos.LoginRequest;
 import com.atlasculinary.dtos.LoginResponse;
 import com.atlasculinary.dtos.SignUpRequest;
@@ -136,5 +137,36 @@ public class AuthServiceImpl implements AuthService {
     } catch (AuthenticationException e) {
       throw new RuntimeException("Email hoặc mật khẩu không chính xác");
     }
+  }
+
+  @Override
+  @Transactional
+  public void changePassword(String email, ChangePasswordRequest changePasswordRequest) {
+    if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+      throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+    }
+
+    Account account = accountRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+    if (account.getStatus() == AccountStatus.BLOCKED) {
+      throw new RuntimeException("Tài khoản đã bị khóa");
+    }
+    if (account.getStatus() == AccountStatus.DELETED) {
+      throw new RuntimeException("Tài khoản đã bị xóa");
+    }
+
+    if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), account.getPassword())) {
+      throw new RuntimeException("Mật khẩu hiện tại không đúng");
+    }
+
+    if (passwordEncoder.matches(changePasswordRequest.getNewPassword(), account.getPassword())) {
+      throw new RuntimeException("Mật khẩu mới phải khác mật khẩu hiện tại");
+    }
+
+    account.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+    accountRepository.save(account);
+
+    LOGGER.info("Đổi mật khẩu thành công cho tài khoản: " + email);
   }
 }
