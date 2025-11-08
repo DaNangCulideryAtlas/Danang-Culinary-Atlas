@@ -88,6 +88,44 @@ public class RestaurantServiceImpl implements RestaurantService {
         return restaurantPage.map(restaurantMapper::toDto);
     }
 
+    private String mapSortByColumn(String sortBy) {
+        if ("average_rating".equalsIgnoreCase(sortBy)) {
+            return "rs.average_rating";
+        }
+        return "r." + sortBy;
+    }
+
+    @Override
+    public Page<RestaurantDto> searchApprovedRestaurants(int page, int size, String sortBy, String sortDirection, List<String> cuisineTypes, BigDecimal minRating, BigDecimal maxRating)
+    {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
+                Sort.Direction.DESC :
+                Sort.Direction.ASC;
+
+        sortBy = mapSortByColumn(sortBy);
+        Sort sort = Sort.by(direction, sortBy);
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Restaurant> restaurantPage;
+        if (cuisineTypes == null ||cuisineTypes.isEmpty()) {
+            restaurantPage = restaurantRepository.findApprovedRestaurantsWithoutTag(
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        } else {
+            restaurantPage = restaurantRepository.findApprovedRestaurantsByCriteria(
+                    cuisineTypes,
+                    minRating,
+                    maxRating,
+                    pageable
+            );
+        }
+
+
+        return restaurantPage.map(restaurantMapper::toDto);
+    }
+
 
     @Override
     public Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection) {

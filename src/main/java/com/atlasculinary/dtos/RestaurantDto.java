@@ -39,7 +39,7 @@ public class RestaurantDto {
 
     private Map<String, Object> openingHours;
 
-    private BigDecimal averageRating;
+    private BigDecimal averageRating = BigDecimal.ZERO;
 
-    private Integer totalReviews;
+    private Integer totalReviews = 0;
 }

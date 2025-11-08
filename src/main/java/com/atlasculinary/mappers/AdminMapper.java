@@ -33,6 +33,8 @@ public interface AdminMapper {
 
     List<AdminDto> toDtoList(List<AdminProfile> adminList);
 
+    @Mapping(source = "avatarUrl", target = "account.avatarUrl")
+    @Mapping(source = "fullName", target = "account.fullName")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(AdminProfileUpdateDto request, @MappingTarget AdminProfile targetEntity);
 }

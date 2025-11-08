@@ -21,6 +21,16 @@ public interface RestaurantService {
 
     Page<RestaurantDto> getAllRestaurants(int page, int size, String sortBy, String sortDirection);
 
+    Page<RestaurantDto> searchApprovedRestaurants(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection,
+            List<String> cuisineTypes,    // Lọc theo Loại Quán Ăn
+            BigDecimal minRating,         // Lọc theo Rating Tối thiểu
+            BigDecimal maxRating          // Lọc theo Rating Tối đa
+    );
+
     Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection);
 
 

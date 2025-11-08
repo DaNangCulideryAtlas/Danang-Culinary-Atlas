@@ -4,17 +4,18 @@ import com.atlasculinary.dtos.*;
 import com.atlasculinary.entities.Account;
 import com.atlasculinary.entities.Notification;
 import com.atlasculinary.entities.Restaurant;
+import com.atlasculinary.entities.Review;
 import com.atlasculinary.exceptions.ResourceNotFoundException;
 import com.atlasculinary.mappers.NotificationMapper;
-import com.atlasculinary.services.AccountService;
-import com.atlasculinary.services.AdminService;
-import com.atlasculinary.services.VendorService;
+import com.atlasculinary.repositories.ReviewRepository;
+import com.atlasculinary.services.*;
+import com.atlasculinary.utils.NameUtil;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import com.atlasculinary.enums.ApprovalStatus;
 import com.atlasculinary.enums.NotificationType;
 import com.atlasculinary.repositories.NotificationRepository;
-import com.atlasculinary.services.NotificationService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.data.domain.Page;
@@ -40,22 +41,25 @@ public class NotificationServiceImpl implements NotificationService {
     private final VendorService vendorService;
     private final JavaMailSender mailSender;
     private final NotificationMapper notificationMapper;
+    private final ReviewRepository reviewRepository;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository,
-                                   AccountService accountService,
-                                   AdminService adminService,
-                                   VendorService vendorService,
-                                   JavaMailSender mailSender,
-                                   NotificationMapper notificationMapper) {
-
+    public NotificationServiceImpl(
+            NotificationRepository notificationRepository,
+            NotificationMapper notificationMapper,
+            AccountService accountService,
+            AdminService adminService,
+            VendorService vendorService,
+            JavaMailSender mailSender,
+            ReviewRepository reviewRepository
+    ) {
+        this.notificationRepository = notificationRepository;
+        this.notificationMapper = notificationMapper;
         this.accountService = accountService;
         this.adminService = adminService;
         this.vendorService = vendorService;
-        this.notificationRepository = notificationRepository;
         this.mailSender = mailSender;
-        this.notificationMapper = notificationMapper;
+        this.reviewRepository = reviewRepository;
     }
-
     @Value("${spring.mail.username}")
     private String fromEmail;
 
@@ -254,6 +258,58 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.delete(notification);
     }
 
+    @Override
+    @Transactional
+    public void notifyVendorNewUserReview(UUID reviewId) {
+        try {
+            // 1. Lấy thông tin cần thiết: Review, Restaurant, Vendor
+            Review review = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Review not found with ID: " + reviewId));
+
+            Restaurant restaurant = review.getRestaurant();
+            Account owerRestaurantAccount = restaurant.getOwnerAccount();
+            UUID vendorAccountId = owerRestaurantAccount.getAccountId();
+            String restaurantName = restaurant.getName();
+            String emailReviewer = review.getReviewerAccount().getEmail();
+            String reviewerName = review.getReviewerAccount().getFullName();
+            if (reviewerName == null || reviewerName.isEmpty()) {
+                reviewerName = NameUtil.getNameFromEmail(emailReviewer);
+            }
+            String reviewTitle = review.getComment();
+
+            String vendorEmail = owerRestaurantAccount.getEmail();
+            String emailSubject = "Bạn có Đánh giá mới cho nhà hàng " + restaurantName;
+            // Sử dụng hàm build đã được đơn giản hóa
+            String emailContent = buildVendorNewReviewContent(restaurantName, reviewerName);
+
+            sendEmail(vendorEmail, emailSubject, emailContent);
+
+            String title = "Đánh giá mới cho " + restaurantName;
+            String message = reviewerName + " đã gửi đánh giá: \"" + reviewTitle + "\"";
+
+            // --- ĐIỀU CHỈNH TARGET URL CHO VENDOR ---
+            String restaurantIdString = restaurant.getRestaurantId().toString();
+            String reviewIdString = reviewId.toString();
+
+            // FE Route dẫn đến trang chi tiết review trong khu vực quản lý của Vendor
+            String targetUrl = "/vendor/restaurants/" + restaurantIdString + "/reviews/" + reviewIdString;
+            // ---------------------------------------
+
+            AddNotificationRequest addNotificationRequest = new AddNotificationRequest(
+                    vendorAccountId,
+                    title,
+                    message,
+                    NotificationType.NEW_REVIEW,
+                    targetUrl
+            );
+            createInAppNotification(addNotificationRequest);
+
+        } catch (ResourceNotFoundException e) {
+            LOGGER.warning("Không tìm thấy Review hoặc thông tin liên quan với ID: " + reviewId);
+        } catch (MessagingException e) {
+            LOGGER.severe("Lỗi gửi email thông báo Review mới: " + e.getMessage());
+        }
+    }
 
     private void sendEmail(String to, String subject, String content) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
@@ -289,6 +345,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     private String buildSystemErrorContent(String errorTitle, String errorMessage) {
         return "<html><body style='font-family: Arial, sans-serif; color: red;'><h2>CẢNH BÁO LỖI HỆ THỐNG</h2><h3>" + errorTitle + "</h3><p>Chi tiết:</p><pre>" + errorMessage + "</pre></body></html>";
+    }
+
+    private String buildVendorNewReviewContent(String restaurantName, String reviewerName) {
+        return "<html>" +
+                "<body style='font-family: Arial, sans-serif;'>" +
+                "<h2>🔔 Đánh Giá Mới Cho Nhà Hàng</h2>" +
+                "<p>Nhà hàng <b>" + restaurantName + "</b> của bạn vừa nhận được một đánh giá mới.</p>" +
+                "<p>Từ: <b>" + reviewerName + "</b></p>" +
+                "<p>Vui lòng đăng nhập vào trang quản lý để xem chi tiết và phản hồi khách hàng.</p>" +
+                "</body></html>";
     }
 
 }

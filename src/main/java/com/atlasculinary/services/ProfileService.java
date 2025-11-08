@@ -4,6 +4,7 @@ import com.atlasculinary.dtos.AdminDto;
 import com.atlasculinary.dtos.UserDto;
 import com.atlasculinary.dtos.VendorDto;
 import com.atlasculinary.dtos.profile.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfileService {
     
