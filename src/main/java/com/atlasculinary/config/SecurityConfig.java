@@ -50,7 +50,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/webjars/**",
-            "/api/v1/auth/**",
+            "/api/v1/auth/signup",
+            "/api/v1/auth/login",
             "/api/v1/locations/**"
     };
 
@@ -77,38 +78,41 @@ public class SecurityConfig {
               // 1. PUBLIC BASE URLS (Luôn cho phép)
               .requestMatchers(PUBLIC_BASE_URLS).permitAll()
 
-              // 2. PUBLIC GET ACCESS (Đọc dữ liệu công khai)
+              // 2. AUTH CHANGE PASSWORD (Cần xác thực)
+              .requestMatchers("/api/v1/auth/change-password").authenticated()
+
+              // 3. PUBLIC GET ACCESS (Đọc dữ liệu công khai)
               .requestMatchers(HttpMethod.GET, PUBLIC_GET_URLS).permitAll()
 
-              // 3. ADMIN ENDPOINTS
+              // 4. ADMIN ENDPOINTS
               .requestMatchers("/api/v1/*/admin/**").hasAuthority("ADMIN")
               .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
 
-              // 4. RESTAURANT & DISH ENDPOINTS
+              // 5. RESTAURANT & DISH ENDPOINTS
               .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
               .requestMatchers(HttpMethod.PUT, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
               .requestMatchers(HttpMethod.PATCH, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
               .requestMatchers(HttpMethod.DELETE, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
 
-              // 5. REVIEW ENDPOINTS
+              // 6. REVIEW ENDPOINTS
               .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
               .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/**").authenticated()
               .requestMatchers(HttpMethod.PATCH, "/api/v1/reviews/**").authenticated()
               .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/**").authenticated()
 
-              // 6. NOTIFICATION ENDPOINTS
+              // 7. NOTIFICATION ENDPOINTS
               .requestMatchers("/api/v1/notifications/**").authenticated()
 
-              // 7. PROFILE PATHS
+              // 8. PROFILE PATHS
               .requestMatchers("/api/v1/profile/admin/**").hasAuthority("ADMIN")
               .requestMatchers("/api/v1/profile/user/**").hasAnyAuthority("USER", "ADMIN")
               .requestMatchers("/api/v1/profile/vendor/**").hasAnyAuthority("VENDOR", "ADMIN")
 
-              //8. REPORT
+              //9. REPORT
               .requestMatchers(HttpMethod.POST, "/api/v1/reports/**").hasAnyAuthority("USER", "VENDOR")
               .requestMatchers(HttpMethod.PUT, "/api/v1/reports/admin/**").hasAuthority("ADMIN")
 
-              // 9. CATCH-ALL: Tất cả các request còn lại phải được xác thực
+              // 10. CATCH-ALL: Tất cả các request còn lại phải được xác thực
               .anyRequest().authenticated()
       )
         .exceptionHandling(ex -> ex
