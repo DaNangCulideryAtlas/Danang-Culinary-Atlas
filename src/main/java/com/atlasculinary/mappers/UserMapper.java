@@ -35,6 +35,8 @@ public interface UserMapper {
 
     List<UserDto> toDtoList(List<UserProfile> userList);
 
+    @Mapping(source = "avatarUrl", target = "account.avatarUrl")
+    @Mapping(source = "fullName", target = "account.fullName")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(UserProfileUpdateDto request, @MappingTarget UserProfile targetEntity);
 

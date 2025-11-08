@@ -38,4 +38,8 @@ public interface NotificationService {
     void markAllAsRead(UUID accountId);
 
     void deleteNotification(Long notificationId);
+
+    void notifyVendorNewUserReview(UUID reviewId);
+
+//    void notifyUserVendorReply(UUID replyId);
 }

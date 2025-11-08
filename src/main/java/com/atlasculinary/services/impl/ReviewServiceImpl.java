@@ -8,10 +8,7 @@ import com.atlasculinary.exceptions.ResourceNotFoundException;
 import com.atlasculinary.mappers.ReviewMapper;
 import com.atlasculinary.repositories.RestaurantRepository;
 import com.atlasculinary.repositories.ReviewRepository;
-import com.atlasculinary.services.AccountService;
-import com.atlasculinary.services.RestaurantService;
-import com.atlasculinary.services.RestaurantStatsService;
-import com.atlasculinary.services.ReviewService;
+import com.atlasculinary.services.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -30,6 +29,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final AccountService accountService;
     private final RestaurantRepository restaurantRepository;
     private final RestaurantStatsService restaurantStatsService;
+    private final NotificationService notificationService;
     private final ReviewMapper reviewMapper;
 
     @Override
@@ -43,9 +43,12 @@ public class ReviewServiceImpl implements ReviewService {
         Account user = accountService.getAccountById(userId);
         review.setRestaurant(restaurant);
         review.setReviewerAccount(user);
+        review.setCreatedAt(LocalDateTime.now());
         var reviewSaved = reviewRepository.save(review);
 
         Integer newRating = reviewSaved.getRating();
+        // Notifications
+        notificationService.notifyVendorNewUserReview(reviewSaved.getReviewId());
         // RestaurantStats
         restaurantStatsService.updateStatsOnReviewEvent(
                 restaurantId,

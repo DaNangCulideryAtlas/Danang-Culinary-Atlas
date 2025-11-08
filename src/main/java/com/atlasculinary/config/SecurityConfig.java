@@ -63,6 +63,8 @@ public class SecurityConfig {
             "/api/v1/restaurants/*/dishes",
             "/api/v1/restaurants/*/reviews",
             "/api/v1/dishes/*/reviews",
+            "/api/v1/restaurants/map-view",
+            "/api/v1/restaurants/search"
     };
 
   @Bean

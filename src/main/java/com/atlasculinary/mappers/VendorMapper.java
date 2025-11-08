@@ -30,6 +30,8 @@ public interface VendorMapper {
 
     List<VendorDto> toDtoList(List<VendorDto> vendorDtoList);
 
+    @Mapping(source = "avatarUrl", target = "account.avatarUrl")
+    @Mapping(source = "fullName", target = "account.fullName")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(VendorProfileUpdateDto request, @MappingTarget VendorProfile targetEntity);
 
