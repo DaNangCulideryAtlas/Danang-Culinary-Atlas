@@ -16,10 +16,29 @@ public class GlobalExceptionHandler {
         ApiResponse response = ApiResponse.error("Unauthorized");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
+    
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
         ApiResponse response = ApiResponse.error("Access Denied");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(PasswordResetException.class)
+    public ResponseEntity<ApiResponse> handlePasswordResetException(PasswordResetException ex) {
+        ApiResponse response = ApiResponse.error(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ApiResponse response = ApiResponse.error(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ApiResponse> handleInvalidRequestException(InvalidRequestException ex) {
+        ApiResponse response = ApiResponse.error(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
   @ExceptionHandler(RuntimeException.class)

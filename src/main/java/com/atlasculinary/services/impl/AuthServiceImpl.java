@@ -1,14 +1,13 @@
 package com.atlasculinary.services.impl;
 
-import com.atlasculinary.dtos.ChangePasswordRequest;
-import com.atlasculinary.dtos.LoginRequest;
-import com.atlasculinary.dtos.LoginResponse;
-import com.atlasculinary.dtos.SignUpRequest;
+import com.atlasculinary.dtos.*;
 import com.atlasculinary.entities.*;
 import com.atlasculinary.enums.AccountStatus;
 import com.atlasculinary.enums.RoleLevel;
+import com.atlasculinary.exceptions.PasswordResetException;
 import com.atlasculinary.repositories.*;
 import com.atlasculinary.services.AuthService;
+import com.atlasculinary.services.NotificationService;
 import com.atlasculinary.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,7 +17,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -32,9 +33,11 @@ public class AuthServiceImpl implements AuthService {
   private final UserRepository userRepository;
   private final AdminRepository adminRepository;
   private final VendorRepository vendorRepository;
+  private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final AuthenticationManager authenticationManager;
+  private final NotificationService notificationService;
 
   @Override
   @Transactional
@@ -168,5 +171,88 @@ public class AuthServiceImpl implements AuthService {
     accountRepository.save(account);
 
     LOGGER.info("Đổi mật khẩu thành công cho tài khoản: " + email);
+  }
+
+  @Override
+  @Transactional
+  public void forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
+    Account account = accountRepository.findByEmail(forgotPasswordRequest.getEmail())
+        .orElseThrow(() -> new PasswordResetException("Không tìm thấy tài khoản với email: " + forgotPasswordRequest.getEmail()));
+
+    if (account.getStatus() == AccountStatus.BLOCKED) {
+      throw new PasswordResetException("Tài khoản đã bị khóa");
+    }
+    if (account.getStatus() == AccountStatus.DELETED) {
+      throw new PasswordResetException("Tài khoản đã bị xóa");
+    }
+
+    // Kiểm tra xem đã có token chưa sử dụng không
+    if (passwordResetTokenRepository.existsByAccountAndUsedFalse(account)) {
+      throw new PasswordResetException("Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email của bạn.");
+    }
+
+    // Tạo token mới
+    String token = UUID.randomUUID().toString();
+    PasswordResetToken resetToken = new PasswordResetToken();
+    resetToken.setToken(token);
+    resetToken.setAccount(account);
+    resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+    resetToken.setUsed(false);
+
+    passwordResetTokenRepository.save(resetToken);
+
+    // Gửi email
+    PasswordResetRequest passwordResetRequest = new PasswordResetRequest();
+    passwordResetRequest.setAccountId(account.getAccountId());
+    passwordResetRequest.setResetToken(token);
+    
+    notificationService.sendPasswordResetRequest(passwordResetRequest);
+
+    LOGGER.info("Đã tạo token reset password cho tài khoản: " + account.getEmail());
+  }
+
+  @Override
+  @Transactional
+  public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+    if (!resetPasswordRequest.getNewPassword().equals(resetPasswordRequest.getConfirmPassword())) {
+      throw new PasswordResetException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+    }
+
+    PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenAndUsedFalse(resetPasswordRequest.getToken())
+        .orElseThrow(() -> new PasswordResetException("Token không hợp lệ hoặc đã được sử dụng"));
+
+    if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new PasswordResetException("Token đã hết hạn");
+    }
+
+    Account account = resetToken.getAccount();
+    
+    if (account.getStatus() == AccountStatus.BLOCKED) {
+      throw new PasswordResetException("Tài khoản đã bị khóa");
+    }
+    if (account.getStatus() == AccountStatus.DELETED) {
+      throw new PasswordResetException("Tài khoản đã bị xóa");
+    }
+
+    // Cập nhật mật khẩu
+    account.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+    accountRepository.save(account);
+
+    // Đánh dấu token đã sử dụng
+    passwordResetTokenRepository.markTokenAsUsed(resetPasswordRequest.getToken(), LocalDateTime.now());
+
+    LOGGER.info("Đặt lại mật khẩu thành công cho tài khoản: " + account.getEmail());
+  }
+
+  @Override
+  public boolean validateResetToken(String token) {
+    PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenAndUsedFalse(token)
+        .orElse(null);
+    
+    if (resetToken == null) {
+      return false;
+    }
+    
+    return resetToken.getExpiresAt().isAfter(LocalDateTime.now());
   }
 }
