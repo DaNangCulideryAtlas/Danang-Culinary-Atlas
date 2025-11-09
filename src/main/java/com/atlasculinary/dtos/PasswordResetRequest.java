@@ -8,4 +8,5 @@ import java.util.UUID;
 public class PasswordResetRequest {
     private UUID accountId;
     private String resetToken;
+    private String platform;
 }
