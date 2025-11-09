@@ -8,10 +8,7 @@ import com.atlasculinary.exceptions.InvalidRequestException;
 import com.atlasculinary.exceptions.ResourceNotFoundException;
 import com.atlasculinary.mappers.RestaurantMapper;
 import com.atlasculinary.repositories.*;
-import com.atlasculinary.services.AccountService;
-import com.atlasculinary.services.NotificationService;
-import com.atlasculinary.services.RestaurantService;
-import com.atlasculinary.services.RestaurantStatsService;
+import com.atlasculinary.services.*;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.hibernate.metamodel.spi.ValueAccess;
@@ -32,6 +29,7 @@ import java.util.logging.Logger;
 public class RestaurantServiceImpl implements RestaurantService {
     private static final Logger LOGGER = Logger.getLogger(RestaurantServiceImpl.class.getName());
     private final RestaurantRepository restaurantRepository;
+    private final RestaurantTagService restaurantTagService;
     private final AccountService accountService;
     private final WardRepository wardRepository;
     private final RestaurantMapper restaurantMapper;
@@ -54,12 +52,11 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurant.setWard(ward);
         restaurant.setApprovalStatus(ApprovalStatus.PENDING);
         restaurant.setCreatedAt(LocalDateTime.now());
-
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
         RestaurantStats newStats = new RestaurantStats();
         newStats.setRestaurant(savedRestaurant);
         restaurantStatsRepository.save(newStats);
-
+        restaurantTagService.addTagsToRestaurant(restaurant.getRestaurantId(), request.getTagIds());
         notificationService.notifyAdminNewRestaurantSubmission(restaurant.getRestaurantId());
         return restaurantMapper.toDto(savedRestaurant);
     }
@@ -158,8 +155,9 @@ public class RestaurantServiceImpl implements RestaurantService {
         if (!ownerId.equals(accessAccountId) && !isAdmin) {
             throw new SecurityException("Bạn không có quyền chỉnh sửa thông tin nhà hàng này.");
         }
-
+        restaurantTagService.updateTagsForRestaurant(restaurantId, request.getTagIds());
         restaurantMapper.updateRestaurantFromRequest(request, restaurant);
+
 
         var requestWardId = request.getWardId();
         if (requestWardId != null) {
