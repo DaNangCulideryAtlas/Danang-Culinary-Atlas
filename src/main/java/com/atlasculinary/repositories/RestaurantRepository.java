@@ -34,6 +34,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> {
             @Param("minLng") BigDecimal minLng,
             @Param("maxLng") BigDecimal maxLng,
             @Param("minRating") BigDecimal minRating);
+
     @Query(value = "SELECT r.* " +
             "FROM restaurant r " +
             "JOIN restaurant_stats rs ON r.restaurant_id = rs.restaurant_id " +

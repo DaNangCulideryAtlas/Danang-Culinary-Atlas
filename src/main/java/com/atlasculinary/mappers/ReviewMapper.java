@@ -13,7 +13,16 @@ import java.util.List;
 public interface ReviewMapper {
 
     @Mapping(source = "reviewerAccount.accountId", target = "reviewerAccountId")
-    @Mapping(source = "reviewerAccount.email", target = "reviewerUsername")
+    @Mapping(
+            target = "reviewerUsername",
+            expression = "java(" +
+                    "review != null && review.getReviewerAccount() != null " +
+                    "? com.atlasculinary.utils.NameUtil.resolveName(" +
+                    "review.getReviewerAccount().getFullName(), " +
+                    "review.getReviewerAccount().getEmail()) " +
+                    ": \"Anonymous\"" +
+                    ")"
+    )
     @Mapping(source = "restaurant.restaurantId", target = "restaurantId")
     @Mapping(source = "dish.dishId", target = "dishId")
     ReviewDto toDto(Review review);

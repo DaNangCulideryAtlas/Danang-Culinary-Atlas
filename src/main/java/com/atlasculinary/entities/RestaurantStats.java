@@ -1,5 +1,6 @@
 package com.atlasculinary.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -38,5 +39,6 @@ public class RestaurantStats {
     @OneToOne
     @MapsId
     @JoinColumn(name = "restaurant_id")
+    @JsonIgnore
     private Restaurant restaurant;
 }

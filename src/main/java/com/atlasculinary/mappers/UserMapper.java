@@ -20,12 +20,11 @@ public interface UserMapper {
     @Mapping(
             target = "fullName",
             expression = "java(" +
-                    "userProfile.getAccount() != null && " +
-                    "userProfile.getAccount().getFullName() != null && " +
-                    "!userProfile.getAccount().getFullName().trim().isEmpty() " +
-                    "? userProfile.getAccount().getFullName() " +
-                    ": com.atlasculinary.utils.NameUtil.getNameFromEmail(" +
-                    "userProfile.getAccount() != null ? userProfile.getAccount().getEmail() : null)" +
+                    "userProfile != null && userProfile.getAccount() != null " +
+                    "? com.atlasculinary.utils.NameUtil.resolveName(" +
+                    "userProfile.getAccount().getFullName(), " +
+                    "userProfile.getAccount().getEmail()) " +
+                    ": \"Anonymous\"" +
                     ")"
     )
     @Mapping(source = "account.status", target = "status")

@@ -89,6 +89,7 @@ public class SecurityConfig {
               .requestMatchers(HttpMethod.PUT, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
               .requestMatchers(HttpMethod.PATCH, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
               .requestMatchers(HttpMethod.DELETE, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
+              .requestMatchers("/api/v1/tags/**").hasAnyAuthority("VENDOR", "ADMIN")
 
               // 5. REVIEW ENDPOINTS
               .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()

@@ -1,7 +1,9 @@
 package com.atlasculinary.entities;
 
+import com.atlasculinary.dtos.RestaurantTagDto;
 import com.atlasculinary.enums.ApprovalStatus;
 import com.atlasculinary.enums.RestaurantStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +15,9 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -81,4 +85,17 @@ public class Restaurant {
 
     @OneToOne(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private RestaurantStats restaurantStats;
+
+//    @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    private Set<RestaurantTagMap> tagMaps;
+//
+//    @Transient
+//    public List<RestaurantTagDto> getTagDtos() {
+//        return tagMaps == null ? List.of() :
+//                tagMaps.stream()
+//                        .map(RestaurantTagMap::getRestaurantTag)
+//                        .map(tag -> new RestaurantTagDto(tag.getTagId(), tag.getName()))
+//                        .toList();
+//    }
 }

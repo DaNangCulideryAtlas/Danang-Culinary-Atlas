@@ -18,12 +18,11 @@ public interface AdminMapper {
     @Mapping(
             target = "fullName",
             expression = "java(" +
-                    "adminProfile.getAccount() != null && " +
-                    "adminProfile.getAccount().getFullName() != null && " +
-                    "!adminProfile.getAccount().getFullName().trim().isEmpty() " +
-                    "? adminProfile.getAccount().getFullName() " +
-                    ": com.atlasculinary.utils.NameUtil.getNameFromEmail(" +
-                    "adminProfile.getAccount() != null ? adminProfile.getAccount().getEmail() : null)" +
+                    "adminProfile != null && adminProfile.getAccount() != null " +
+                    "? com.atlasculinary.utils.NameUtil.resolveName(" +
+                    "adminProfile.getAccount().getFullName(), " +
+                    "adminProfile.getAccount().getEmail()) " +
+                    ": \"Anonymous\"" +
                     ")"
     )
     @Mapping(source = "account.status", target = "status")

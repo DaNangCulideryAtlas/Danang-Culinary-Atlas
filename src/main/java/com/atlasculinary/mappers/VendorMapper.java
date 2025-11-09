@@ -15,12 +15,11 @@ public interface VendorMapper {
     @Mapping(
             target = "fullName",
             expression = "java(" +
-                    "vendorProfile.getAccount() != null && " +
-                    "vendorProfile.getAccount().getFullName() != null && " +
-                    "!vendorProfile.getAccount().getFullName().trim().isEmpty() " +
-                    "? vendorProfile.getAccount().getFullName() " +
-                    ": com.atlasculinary.utils.NameUtil.getNameFromEmail(" +
-                    "vendorProfile.getAccount() != null ? vendorProfile.getAccount().getEmail() : null)" +
+                    "vendorProfile != null && vendorProfile.getAccount() != null " +
+                    "? com.atlasculinary.utils.NameUtil.resolveName(" +
+                    "vendorProfile.getAccount().getFullName(), " +
+                    "vendorProfile.getAccount().getEmail()) " +
+                    ": \"Anonymous\"" +
                     ")"
     )
     @Mapping(source = "account.status", target = "status")

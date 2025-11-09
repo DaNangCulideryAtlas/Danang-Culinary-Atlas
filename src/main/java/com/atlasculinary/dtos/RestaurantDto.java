@@ -4,6 +4,7 @@ import com.atlasculinary.enums.RestaurantStatus;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,6 +33,8 @@ public class RestaurantDto {
     private LocalDateTime approvedAt;
 
     private String rejectionReason;
+
+    private List<RestaurantTagDto> tags;
 
     private BigDecimal latitude;
 
