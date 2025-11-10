@@ -30,6 +30,13 @@ public interface RestaurantService {
             BigDecimal minRating,         // Lọc theo Rating Tối thiểu
             BigDecimal maxRating          // Lọc theo Rating Tối đa
     );
+    Page<RestaurantDto> searchApprovedRestaurantsByName(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection,
+            String restaurantName
+    );
 
     Page<RestaurantDto> getAllRestaurantsByVendor(UUID vendorId, int page, int size, String sortBy, String sortDirection);
 

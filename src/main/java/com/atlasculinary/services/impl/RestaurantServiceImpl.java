@@ -85,6 +85,26 @@ public class RestaurantServiceImpl implements RestaurantService {
         return restaurantPage.map(restaurantMapper::toDto);
     }
 
+    @Override
+    public Page<RestaurantDto> searchApprovedRestaurantsByName( int page, int size, String sortBy, String sortDirection, String restaurantName) {
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
+                Sort.Direction.DESC :
+                Sort.Direction.ASC;
+
+        Sort sort = Sort.by(direction, sortBy);
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Restaurant> restaurantPage = restaurantRepository
+                .findByApprovalStatusAndNameContainingIgnoreCase(
+                        ApprovalStatus.APPROVED,
+                        restaurantName,
+                        pageable
+                );
+        return restaurantPage.map(restaurantMapper::toDto);
+    }
+
     private String mapSortByColumn(String sortBy) {
         if ("average_rating".equalsIgnoreCase(sortBy)) {
             return "rs.average_rating";

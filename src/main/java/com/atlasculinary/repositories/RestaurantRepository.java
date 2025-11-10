@@ -87,4 +87,6 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> {
             @Param("minRating") BigDecimal minRating,
             @Param("maxRating") BigDecimal maxRating,
             Pageable pageable);
+
+    Page<Restaurant> findByApprovalStatusAndNameContainingIgnoreCase(ApprovalStatus approvalStatus, String restaurantName, Pageable pageable);
 }

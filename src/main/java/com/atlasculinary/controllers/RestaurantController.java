@@ -97,6 +97,21 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantsPage);
     }
 
+    @Operation(summary = "Search approved restaurants by name with pagination and sorting")
+    @GetMapping("/restaurants/name")
+    public ResponseEntity<Page<RestaurantDto>> searchApprovedRestaurantsByName(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam String name) {
+
+        Page<RestaurantDto> restaurantsPage = restaurantService
+                .searchApprovedRestaurantsByName(page, size, sortBy, sortDirection, name);
+
+        return ResponseEntity.ok(restaurantsPage);
+    }
+
     @GetMapping("restaurants/search")
     public ResponseEntity<Page<RestaurantDto>> searchRestaurants(
             @RequestParam(defaultValue = "0") int page,
