@@ -293,6 +293,7 @@ public class RestaurantServiceImpl implements RestaurantService {
             BigDecimal minLng,
             BigDecimal maxLng)
     {
+        if (zoomLevel <= 0) throw new InvalidRequestException("ZoomLevel not <= 0");
         BigDecimal minRating = getMinRatingForZoom(zoomLevel);
         List<Restaurant> restaurants = restaurantRepository.findRestaurantsInArea(
                 minLat, maxLat, minLng, maxLng, minRating);
