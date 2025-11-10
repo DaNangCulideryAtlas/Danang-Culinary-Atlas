@@ -205,10 +205,11 @@ public class AuthServiceImpl implements AuthService {
     PasswordResetRequest passwordResetRequest = new PasswordResetRequest();
     passwordResetRequest.setAccountId(account.getAccountId());
     passwordResetRequest.setResetToken(token);
+    passwordResetRequest.setPlatform(forgotPasswordRequest.getPlatform());
     
     notificationService.sendPasswordResetRequest(passwordResetRequest);
 
-    LOGGER.info("Đã tạo token reset password cho tài khoản: " + account.getEmail());
+    LOGGER.info("Đã tạo token reset password cho tài khoản: " + account.getEmail() + " (platform: " + forgotPasswordRequest.getPlatform() + ")");
   }
 
   @Override

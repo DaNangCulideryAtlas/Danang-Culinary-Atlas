@@ -62,6 +62,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
     @Value("${spring.mail.username}")
     private String fromEmail;
+    
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+    
+    @Value("${app.deeplink.scheme}")
+    private String deeplinkScheme;
 
     @Override
     public void sendWelcomeNotification(UUID accountId) {
@@ -80,10 +86,21 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordResetRequest(PasswordResetRequest passwordResetRequest) {
         var accountDto = accountService.getAccountById(passwordResetRequest.getAccountId());
         String recipientEmail = accountDto.getEmail();
+        String platform = passwordResetRequest.getPlatform() != null ? passwordResetRequest.getPlatform() : "web";
+        
         try {
             String subject = "Yêu cầu Đặt lại Mật khẩu";
-            String content = buildPasswordResetContent(passwordResetRequest.getResetToken());
+            String content;
+            
+            // Chọn template email phù hợp với platform
+            if ("mobile".equalsIgnoreCase(platform)) {
+                content = buildPasswordResetContentForMobile(passwordResetRequest.getResetToken());
+            } else {
+                content = buildPasswordResetContentForWeb(passwordResetRequest.getResetToken());
+            }
+            
             sendEmail(recipientEmail, subject, content);
+            LOGGER.info("Đã gửi email reset password cho " + recipientEmail + " (platform: " + platform + ")");
         } catch (MessagingException e) {
             LOGGER.severe("Lỗi gửi email đặt lại mật khẩu tới " + recipientEmail + ": " + e.getMessage());
         }
@@ -327,41 +344,118 @@ public class NotificationServiceImpl implements NotificationService {
         return "<html><body style='font-family: Arial, sans-serif;'><h2>Chào mừng, " + username + "!</h2><p>Tài khoản của bạn đã được tạo thành công.</p><a href='http://app.link/login'>Đăng nhập ngay</a></body></html>";
     }
 
-    private String buildPasswordResetContent(String resetToken) {
+    private String buildPasswordResetContentForWeb(String resetToken) {
+        String webLink = frontendUrl + "/reset-password?token=" + resetToken;
+        
         return "<html>" +
                 "<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+                
+                "<!-- Header -->" +
                 "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;'>" +
                 "<h1 style='margin: 0; font-size: 28px;'>🔐 Đặt Lại Mật Khẩu</h1>" +
                 "</div>" +
+                
+                "<!-- Body -->" +
                 "<div style='background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;'>" +
+                
                 "<h2 style='color: #333; margin-top: 0;'>Yêu cầu đặt lại mật khẩu</h2>" +
+                
                 "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
                 "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản Atlas Culinary của bạn." +
                 "</p>" +
+                
                 "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
                 "Nhấp vào nút bên dưới để đặt lại mật khẩu. Link này sẽ hết hạn sau <strong>5 phút</strong>." +
                 "</p>" +
+                
+                "<!-- Primary Button -->" +
                 "<div style='text-align: center; margin: 30px 0;'>" +
-                "<a href='http://localhost:3000/reset-password?token=" + resetToken + "' " +
+                "<a href='" + webLink + "' " +
                 "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); " +
-                "color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; " +
+                "color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; " +
                 "font-weight: bold; font-size: 16px; display: inline-block; " +
                 "box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);'>" +
                 "🔑 Đặt Lại Mật Khẩu" +
                 "</a>" +
                 "</div>" +
+                
+                "<!-- Security Warning -->" +
                 "<div style='background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;'>" +
-                "<p style='margin: 0; color: #856404; font-size: 14px;'>" +
+                "<p style='margin: 0; color: #856404; font-size: 14px; line-height: 1.6;'>" +
                 "<strong>⚠️ Lưu ý bảo mật:</strong><br>" +
                 "• Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này<br>" +
                 "• Không chia sẻ link này với bất kỳ ai<br>" +
                 "• Link sẽ tự động hết hạn sau 5 phút" +
                 "</p>" +
                 "</div>" +
-                "<p style='color: #999; font-size: 12px; text-align: center; margin-top: 30px;'>" +
-                "Email này được gửi từ Atlas Culinary System<br>" +
+                
+                "<!-- Footer -->" +
+                "<p style='color: #999; font-size: 12px; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;'>" +
+                "Email này được gửi từ <strong>Atlas Culinary System</strong><br>" +
                 "Nếu có thắc mắc, vui lòng liên hệ support@atlasculinary.com" +
                 "</p>" +
+                
+                "</div>" +
+                "</body>" +
+                "</html>";
+    }
+    
+    private String buildPasswordResetContentForMobile(String resetToken) {
+        String deepLink = deeplinkScheme + "://reset-password?token=" + resetToken;
+        
+        return "<html>" +
+                "<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+                
+                "<!-- Header -->" +
+                "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;'>" +
+                "<h1 style='margin: 0; font-size: 28px;'>📱 Đặt Lại Mật Khẩu</h1>" +
+                "</div>" +
+                
+                "<!-- Body -->" +
+                "<div style='background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;'>" +
+                
+                "<h2 style='color: #333; margin-top: 0;'>Yêu cầu đặt lại mật khẩu</h2>" +
+                
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "Bạn đã yêu cầu đặt lại mật khẩu từ ứng dụng Atlas Culinary" +
+                "</p>" +
+                
+                "<!-- Deep Link Button -->" +
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='" + deepLink + "' " +
+                "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); " +
+                "color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; " +
+                "font-weight: bold; font-size: 16px; display: inline-block; " +
+                "box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);'>" +
+                "🔓Đặt Lại Mật Khẩu" +
+                "</a>" +
+                "</div>" +
+                
+                "<!-- Note -->" +
+                "<div style='background: #fff9e6; border: 1px solid #ffe082; border-radius: 5px; padding: 15px; margin: 20px 0;'>" +
+                "<p style='margin: 0; color: #f57f17; font-size: 13px; line-height: 1.6;'>" +
+                "<strong>💡 Lưu ý:</strong><br>" +
+                "Nút trên chỉ hoạt động khi bạn <strong>mở email này trên điện thoại</strong> và đã cài đặt app Atlas Culinary." +
+                "</p>" +
+                "</div>" +
+                
+                "<!-- Security Warning -->" +
+                "<div style='background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;'>" +
+                "<p style='margin: 0; color: #856404; font-size: 14px; line-height: 1.6;'>" +
+                "<strong>⚠️ Bảo mật:</strong><br>" +
+                "• Link này chỉ có hiệu lực trong <strong>5 phút</strong><br>" +
+                "• Chỉ sử dụng 1 lần duy nhất<br>" +
+                "• Không chia sẻ với bất kỳ ai<br>" +
+                "• Nếu không phải bạn yêu cầu, vui lòng bỏ qua email này" +
+                "</p>" +
+                "</div>" +
+                
+                "<!-- Footer -->" +
+                "<p style='color: #999; font-size: 12px; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;'>" +
+                "Email này được gửi từ <strong>Atlas Culinary Mobile App</strong><br>" +
+                "Nếu có thắc mắc, vui lòng liên hệ support@atlasculinary.com" +
+                "</p>" +
+                
                 "</div>" +
                 "</body>" +
                 "</html>";
