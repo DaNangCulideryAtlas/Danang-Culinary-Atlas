@@ -56,8 +56,9 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantStats newStats = new RestaurantStats();
         newStats.setRestaurant(savedRestaurant);
         restaurantStatsRepository.save(newStats);
-        restaurantTagService.addTagsToRestaurant(restaurant.getRestaurantId(), request.getTagIds());
-        notificationService.notifyAdminNewRestaurantSubmission(restaurant.getRestaurantId());
+        System.out.println("RestaurantId " + savedRestaurant.getRestaurantId() + ", TagIds");
+        restaurantTagService.addTagsToRestaurant(savedRestaurant.getRestaurantId(), request.getTagIds());
+        notificationService.notifyAdminNewRestaurantSubmission(savedRestaurant.getRestaurantId());
         return restaurantMapper.toDto(savedRestaurant);
     }
 
