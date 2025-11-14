@@ -41,7 +41,9 @@ public class RestaurantTagServiceImpl implements RestaurantTagService {
                             .orElseThrow(() -> new RuntimeException("Tag not found with ID: " + tagId));
 
                     RestaurantTagMap map = new RestaurantTagMap();
+                    map.setRestaurantId(restaurantId);
                     map.setRestaurant(restaurant);
+                    map.setTagId(tagId);
                     map.setRestaurantTag(tag);
 
                     return map;
