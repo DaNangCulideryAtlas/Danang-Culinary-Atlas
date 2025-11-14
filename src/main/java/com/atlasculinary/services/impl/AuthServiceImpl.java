@@ -9,6 +9,7 @@ import com.atlasculinary.repositories.*;
 import com.atlasculinary.services.AuthService;
 import com.atlasculinary.services.NotificationService;
 import com.atlasculinary.utils.JwtUtil;
+import com.atlasculinary.utils.NameUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -128,11 +129,13 @@ public class AuthServiceImpl implements AuthService {
         .collect(Collectors.toList());
       LOGGER.severe("Roles" + roles);
       String token = jwtUtil.generateToken(account.getEmail(), roles);
-
+      String fullName = account.getFullName();
+      String email = account.getEmail();
+      fullName = NameUtil.resolveName(fullName, email);
       return LoginResponse.builder()
           .token(token)
-          .email(account.getEmail())
-          .fullName(account.getFullName())
+          .email(email)
+          .fullName(fullName)
           .avatarUrl(account.getAvatarUrl())
           .roles(roles)
           .build();
