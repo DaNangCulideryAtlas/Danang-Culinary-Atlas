@@ -30,6 +30,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     private static final Logger LOGGER = Logger.getLogger(RestaurantServiceImpl.class.getName());
     private final RestaurantRepository restaurantRepository;
     private final RestaurantTagService restaurantTagService;
+    private final DishTagService dishTagService;
     private final AccountService accountService;
     private final WardRepository wardRepository;
     private final RestaurantMapper restaurantMapper;
@@ -209,7 +210,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         if (!ownerId.equals(accessAccountId) && !isAdmin) {
             throw new SecurityException("Bạn không có quyền chỉnh sửa thông tin nhà hàng này.");
         }
-
+        restaurantTagService.deleteRestaurantTagsByRestaurantId(restaurantId);
         restaurantRepository.delete(restaurant);
     }
 

@@ -103,4 +103,10 @@ public class RestaurantTagServiceImpl implements RestaurantTagService {
 
         return restaurantTagMapper.toDtoList(tags);
     }
+
+    @Override
+    public void deleteRestaurantTagsByRestaurantId(UUID restaurantId) {
+        restaurantTagMapRepository.deleteByRestaurantId(restaurantId);
+
+    }
 }
