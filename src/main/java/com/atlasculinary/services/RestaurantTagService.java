@@ -10,4 +10,5 @@ public interface RestaurantTagService {
     void addTagsToRestaurant(UUID restaurantId, List<Long> tagIds);
     void updateTagsForRestaurant(UUID restaurantId, List<Long> tagIds);
     List<RestaurantTagDto> getRestaurantTagsByRestaurantId(UUID restaurantId);
+    void deleteRestaurantTagsByRestaurantId(UUID restaurantId);
 }
