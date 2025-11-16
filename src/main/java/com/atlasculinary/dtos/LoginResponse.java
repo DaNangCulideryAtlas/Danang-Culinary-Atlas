@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -18,7 +19,7 @@ public class LoginResponse {
   
   @Builder.Default
   private String tokenType = "Bearer";
-  
+  private UUID accountId;
   private String email;
   private String fullName;
   private String avatarUrl;

@@ -131,9 +131,11 @@ public class AuthServiceImpl implements AuthService {
       String token = jwtUtil.generateToken(account.getEmail(), roles);
       String fullName = account.getFullName();
       String email = account.getEmail();
+      UUID accountId = account.getAccountId();
       fullName = NameUtil.resolveName(fullName, email);
       return LoginResponse.builder()
           .token(token)
+          .accountId(accountId)
           .email(email)
           .fullName(fullName)
           .avatarUrl(account.getAvatarUrl())
