@@ -38,7 +38,7 @@ public class RestaurantController {
     // =================================================================
 
     @Operation(summary = "Create a new restaurant (by Vendor or Admin)")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('RESTAURANT_CREATE')")
     @PutMapping("/restaurants")
     public ResponseEntity<RestaurantDto> createRestaurant(
             @RequestBody @Valid AddRestaurantRequest addRestaurantRequest,
@@ -51,7 +51,7 @@ public class RestaurantController {
 
     @Operation(summary = "Update an existing restaurant's details")
     @PatchMapping("/restaurants/{restaurantId}")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('RESTAURANT_UPDATE')")
     ResponseEntity<RestaurantDto> updateRestaurant(@PathVariable UUID restaurantId,
                                                    @Valid @RequestBody UpdateRestaurantRequest updateRestaurantRequest,
                                                    @AuthenticationPrincipal CustomAccountDetails principal) {
@@ -63,7 +63,7 @@ public class RestaurantController {
 
     @Operation(summary = "Delete a restaurant by Id (Soft Delete, chỉ Owner hoặc Admin)")
     @DeleteMapping("/restaurants/{restaurantId}")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('RESTAURANT_DELETE')")
     ResponseEntity<Void> deleteRestaurant(@PathVariable UUID restaurantId,
                                           @AuthenticationPrincipal CustomAccountDetails principal) {
         var accessAccountId = principal.getAccountId();
@@ -166,7 +166,7 @@ public class RestaurantController {
 
     @Operation(summary = "Get all restaurants belonging to a specific Vendor (dành cho Vendor/Admin)")
     @GetMapping("/vendors/{vendorId}/restaurants") // URI: /api/v1/vendors/{vendorId}/restaurants
-    @PreAuthorize("hasAuthority('ADMIN') or #vendorId == principal.accountId")
+    @PreAuthorize("hasAuthority('RESTAURANT_VIEW_OWN') or (hasAuthority('RESTAURANT_VIEW_ALL') and hasAuthority('ROLE_ADMIN'))")
     public ResponseEntity<Page<RestaurantDto>> getAllRestaurantsByVendor(
             @PathVariable UUID vendorId,
             @RequestParam(defaultValue = "0") int page,
@@ -187,7 +187,7 @@ public class RestaurantController {
 
     @Operation(summary = "Update the approval status of a restaurant (Admin only)")
     @PatchMapping("/restaurants/admin/{restaurantId}/approval") // URI: /api/v1/admin/restaurants/{id}/approval
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('RESTAURANT_APPROVE') or hasAuthority('RESTAURANT_REJECT')")
     public ResponseEntity<RestaurantDto> updateApprovalStatus(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody UpdateApprovalStatusRequest request,
@@ -200,7 +200,7 @@ public class RestaurantController {
 
     @Operation(summary = "ADMIN: Get all restaurants with any status (PENDING, APPROVED, REJECTED)")
     @GetMapping("/restaurants/admin") // URI: /api/v1/restaurants/admin
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('RESTAURANT_VIEW_ALL')")
     public ResponseEntity<Page<RestaurantDto>> getAllRestaurantsForAdmin(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

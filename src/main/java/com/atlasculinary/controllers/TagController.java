@@ -23,21 +23,21 @@ public class TagController {
     private final RestaurantTagService restaurantTagService;
     private final DishTagService dishTagService;
     @GetMapping("/restaurant")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('TAG_VIEW_RESTAURANT')")
     public ResponseEntity<List<RestaurantTagDto>> getAllRestaurantTags() {
         List<RestaurantTagDto> tags = restaurantTagService.getAllRestaurantTag();
         return ResponseEntity.ok(tags);
     }
 
     @GetMapping("/dish")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('TAG_VIEW_DISH')")
     public ResponseEntity<List<DishTagDto>> getAllDishTags() {
         List<DishTagDto> tags = dishTagService.getAllDishTag();
         return ResponseEntity.ok(tags);
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('TAG_VIEW_BY_RESTAURANT')")
     public ResponseEntity<List<RestaurantTagDto>> getRestaurantTagsByRestaurantId(@PathVariable UUID restaurantId) {
 
         List<RestaurantTagDto> tags = restaurantTagService.getRestaurantTagsByRestaurantId(restaurantId);

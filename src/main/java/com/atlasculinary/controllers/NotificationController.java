@@ -29,7 +29,7 @@ public class NotificationController {
 
     @Operation(summary = "Get list of notifications for the current user")
     @GetMapping // URI: /api/v1/notifications
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW')")
     ResponseEntity<Page<NotificationDto>> getMyNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -45,7 +45,7 @@ public class NotificationController {
 
     @Operation(summary = "Mask a specific notification as read for current user")
     @PatchMapping("/{notificationId}/read")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('NOTIFICATION_MARK_READ')")
     public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId,
                                            @AuthenticationPrincipal CustomAccountDetails principal) {
         var accessAccountId = principal.getAccountId();
@@ -55,7 +55,7 @@ public class NotificationController {
 
     @Operation(summary = "Mask ALL notifications as read for current user")
     @PatchMapping("/mark-all-read") // URI: /api/v1/notifications/mark-all-read
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('NOTIFICATION_MARK_READ')")
     public ResponseEntity<Void> markAllAsRead(@AuthenticationPrincipal CustomAccountDetails principal) {
         var accessAccountId = principal.getAccountId();
         notificationService.markAllAsRead(accessAccountId);
@@ -64,7 +64,7 @@ public class NotificationController {
 
     @Operation(summary = "Count unread notification for current user")
     @GetMapping("/unread/count") // URI: /api/v1/notifications/unread/count
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('NOTIFICATION_COUNT_UNREAD')")
     public ResponseEntity<Long> getUnreadCount(@AuthenticationPrincipal CustomAccountDetails principal) {
         var accessAccountId = principal.getAccountId();
         Long count = notificationService.getUnreadCount(accessAccountId);
@@ -73,7 +73,7 @@ public class NotificationController {
 
     @Operation(summary = "Get top 10 unread notification for current user")
     @GetMapping("/unread/top10") // URI: /api/v1/notifications/unread/top10
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW')")
     public ResponseEntity<List<NotificationDto>> getTop10Unread(@AuthenticationPrincipal CustomAccountDetails principal) {
         var accessAccountId = principal.getAccountId();
         List<NotificationDto> notifications = notificationService.getTop10Unread(accessAccountId);
@@ -83,7 +83,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Get list of notifications by recipient Id")
     @GetMapping("/admin/{accountId}") // URI: /api/v1/notifications/admin/{accountId}
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW_ALL')")
     ResponseEntity<Page<NotificationDto>> getNotificationsByAdmin(
             @PathVariable UUID accountId,
             @RequestParam(defaultValue = "0") int page,
@@ -97,7 +97,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Count unread notification for any account")
     @GetMapping("/admin/{accountId}/unread/count") // URI: /api/v1/notifications/admin/{id}/unread/count
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW_ALL')")
     public ResponseEntity<Long> getUnreadCountByAdmin(@PathVariable UUID accountId) {
         Long count = notificationService.getUnreadCount(accountId);
         return ResponseEntity.ok(count);
@@ -105,7 +105,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Get top 10 unread notification for any account")
     @GetMapping("/admin/{accountId}/unread/top10") // URI: /api/v1/notifications/admin/{id}/unread/top10
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW_ALL')")
     public ResponseEntity<List<NotificationDto>> getTop10UnreadByAdmin(@PathVariable UUID accountId) {
         List<NotificationDto> notifications = notificationService.getTop10Unread(accountId);
         return ResponseEntity.ok(notifications);
@@ -113,7 +113,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Mark all notification as read for any account")
     @PatchMapping("/admin/{accountId}/mark-all-read") // URI: /api/v1/notifications/admin/{id}/mark-all-read
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_VIEW_ALL')")
     public ResponseEntity<Void> markAllAsReadByAdmin(@PathVariable UUID accountId) {
         notificationService.markAllAsRead(accountId);
         return ResponseEntity.ok().build();
@@ -121,7 +121,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Delete a notification by ID (CRUD)")
     @DeleteMapping("/admin/{notificationId}") // URI: /api/v1/notifications/admin/{id}
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_DELETE')")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long notificationId) {
         notificationService.deleteNotification(notificationId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -129,7 +129,7 @@ public class NotificationController {
 
     @Operation(summary = "ADMIN: Create and send a specific in-app notification to any user")
     @PostMapping("/admin") // URI: /api/v1/notifications/admin
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('NOTIFICATION_CREATE')")
     public ResponseEntity<Void> createInAppNotification(
             @Valid @RequestBody AddNotificationRequest addNotificationRequest) {
 

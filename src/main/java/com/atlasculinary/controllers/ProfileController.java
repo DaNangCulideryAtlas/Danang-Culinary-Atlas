@@ -21,7 +21,7 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @GetMapping("/user")
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('PROFILE_USER_VIEW')")
     public ResponseEntity<ApiResponse> getUserProfile(Authentication authentication) {
         String email = authentication.getName();
         UserDto profile = profileService.getUserProfile(email);
@@ -29,7 +29,7 @@ public class ProfileController {
     }
 
     @PutMapping("/user")
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('PROFILE_USER_UPDATE')")
     public ResponseEntity<ApiResponse> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateDto updateDto,
             Authentication authentication) {
@@ -39,7 +39,7 @@ public class ProfileController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PROFILE_ADMIN_VIEW')")
     public ResponseEntity<ApiResponse> getAdminProfile(Authentication authentication) {
         String email = authentication.getName();
         AdminDto profile = profileService.getAdminProfile(email);
@@ -47,7 +47,7 @@ public class ProfileController {
     }
 
     @PutMapping("/admin")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PROFILE_ADMIN_UPDATE')")
     public ResponseEntity<ApiResponse> updateAdminProfile(
             @Valid @RequestBody AdminProfileUpdateDto updateDto,
             Authentication authentication) {
@@ -57,7 +57,7 @@ public class ProfileController {
     }
 
     @GetMapping("/vendor")
-    @PreAuthorize("hasAuthority('VENDOR')")
+    @PreAuthorize("hasAuthority('PROFILE_VENDOR_VIEW')")
     public ResponseEntity<ApiResponse> getVendorProfile(Authentication authentication) {
         String email = authentication.getName();
         VendorDto profile = profileService.getVendorProfile(email);
@@ -65,7 +65,7 @@ public class ProfileController {
     }
 
     @PutMapping("/vendor")
-    @PreAuthorize("hasAuthority('VENDOR')")
+    @PreAuthorize("hasAuthority('PROFILE_VENDOR_UPDATE')")
     public ResponseEntity<ApiResponse> updateVendorProfile(
             @Valid @RequestBody VendorProfileUpdateDto updateDto,
             Authentication authentication) {
