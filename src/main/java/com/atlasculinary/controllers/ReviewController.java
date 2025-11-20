@@ -31,7 +31,7 @@ public class ReviewController {
 
     @Operation(summary = "Create a new review")
     @PostMapping("/reviews")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('REVIEW_CREATE')")
     public ResponseEntity<ReviewDto> addReview(
             @Valid @RequestBody AddReviewRequest request,
             @AuthenticationPrincipal CustomAccountDetails principal) {
@@ -42,7 +42,7 @@ public class ReviewController {
 
     @Operation(summary = "Update an existing review")
     @PutMapping("/reviews/{reviewId}")
-    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @PreAuthorize("hasAuthority('REVIEW_UPDATE')")
     public ResponseEntity<ReviewDto> updateReview(
             @PathVariable UUID reviewId,
             @Valid @RequestBody UpdateReviewRequest request,
@@ -55,7 +55,7 @@ public class ReviewController {
 
     @Operation(summary = "Delete a review by ID")
     @DeleteMapping("/reviews/{reviewId}")
-    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @PreAuthorize("hasAuthority('REVIEW_DELETE')")
     public ResponseEntity<Void> deleteReview(
             @PathVariable UUID reviewId,
             @AuthenticationPrincipal CustomAccountDetails principal) {
@@ -100,7 +100,7 @@ public class ReviewController {
 
     @Operation(summary = "Vendor replies to a specific customer review")
     @PostMapping("/reviews/{reviewId}/reply") // POST /api/v1/reviews/{reviewId}/reply
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('REVIEW_REPLY')")
     public ResponseEntity<ReviewDto> replyToReview(
             @PathVariable UUID reviewId,
             @Valid @RequestBody ReviewReplyRequest request,
@@ -113,7 +113,7 @@ public class ReviewController {
 
     @Operation(summary = "Vendor gets all reviews for their specific restaurants")
     @GetMapping("/restaurants/{restaurantId}/vendor-reviews") // GET /api/v1/restaurants/{restaurantId}/vendor-reviews
-    @PreAuthorize("hasAnyAuthority('VENDOR', 'ADMIN')")
+    @PreAuthorize("hasAuthority('REVIEW_VIEW_VENDOR')")
     public ResponseEntity<Page<ReviewDto>> getVendorReviews(
             @PathVariable UUID restaurantId,
             @RequestParam(defaultValue = "0") int page,

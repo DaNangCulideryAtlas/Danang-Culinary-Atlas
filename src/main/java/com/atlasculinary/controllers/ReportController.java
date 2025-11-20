@@ -21,6 +21,7 @@ public class ReportController {
     private ReportService reportService;
 
     @PostMapping({"", "/"})
+    @PreAuthorize("hasAuthority('REPORT_CREATE')")
     public ResponseEntity<ReportResponse> createReport(@RequestBody ReportRequest request, Authentication authentication) {
         String username = authentication.getName();
         ReportResponse response = reportService.createReport(request, username);
@@ -28,6 +29,7 @@ public class ReportController {
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasAuthority('REPORT_VIEW_OWN')")
     public ResponseEntity<List<ReportResponse>> getMyReports(Authentication authentication) {
         String username = authentication.getName();
         List<ReportResponse> reports = reportService.getReportsByReporter(username);
@@ -35,14 +37,14 @@ public class ReportController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('REPORT_VIEW_ALL')")
     public ResponseEntity<List<ReportResponse>> getAllReports() {
         List<ReportResponse> reports = reportService.getAllReports();
         return ResponseEntity.ok(reports);
     }
 
     @PutMapping("/admin/{reportId}/status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('REPORT_UPDATE_STATUS')")
     public ResponseEntity<ReportResponse> updateReportStatus(@PathVariable UUID reportId, @RequestBody UpdateReportStatusRequest request, Authentication authentication) {
         String adminUsername = authentication.getName();
         ReportResponse response = reportService.updateReportStatus(reportId, request.getStatus(), adminUsername);
@@ -50,7 +52,7 @@ public class ReportController {
     }
 
     @GetMapping("/admin/statistics")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('REPORT_VIEW_STATISTICS')")
     public ResponseEntity<ReportStatisticsResponse> getReportStatistics() {
         ReportStatisticsResponse stats = reportService.getReportStatistics();
         return ResponseEntity.ok(stats);

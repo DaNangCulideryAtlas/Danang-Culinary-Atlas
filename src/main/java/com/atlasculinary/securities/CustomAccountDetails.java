@@ -7,9 +7,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Getter
 public class CustomAccountDetails implements UserDetails {
@@ -22,13 +23,28 @@ public class CustomAccountDetails implements UserDetails {
     private final boolean enabled;
 
     public CustomAccountDetails(Account account) {
+        this(account, null);
+    }
+
+    public CustomAccountDetails(Account account, List<String> actionCodes) {
         this.accountId = account.getAccountId();
         this.email = account.getEmail();
         this.password = account.getPassword();
 
-        Set<GrantedAuthority> grantedAuthorities = account.getAccountRoleMapSet().stream()
+        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+        
+        // Add role-based authorities (for backward compatibility)
+        account.getAccountRoleMapSet().stream()
                 .map(roleMap -> new SimpleGrantedAuthority(roleMap.getRole().getRoleName()))
-                .collect(Collectors.toSet());
+                .forEach(grantedAuthorities::add);
+
+        // Add action-based authorities if provided
+        if (actionCodes != null && !actionCodes.isEmpty()) {
+            actionCodes.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .forEach(grantedAuthorities::add);
+        }
+
         this.authorities = grantedAuthorities;
 
         // Status checks

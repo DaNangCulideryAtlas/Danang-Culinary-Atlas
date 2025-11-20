@@ -85,36 +85,7 @@ public class SecurityConfig {
               // 3. PUBLIC GET ACCESS (Đọc dữ liệu công khai)
               .requestMatchers(HttpMethod.GET, PUBLIC_GET_URLS).permitAll()
 
-              // 4. ADMIN ENDPOINTS
-              .requestMatchers("/api/v1/*/admin/**").hasAuthority("ADMIN")
-              .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
-
-              // 5. RESTAURANT & DISH ENDPOINTS
-              .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
-              .requestMatchers(HttpMethod.PUT, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
-              .requestMatchers(HttpMethod.PATCH, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
-              .requestMatchers(HttpMethod.DELETE, "/api/v1/restaurants/**", "/api/v1/dishes/**").hasAnyAuthority("VENDOR", "ADMIN")
-              .requestMatchers("/api/v1/tags/**").hasAnyAuthority("VENDOR", "ADMIN")
-
-              // 6. REVIEW ENDPOINTS
-              .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
-              .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/**").authenticated()
-              .requestMatchers(HttpMethod.PATCH, "/api/v1/reviews/**").authenticated()
-              .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/**").authenticated()
-
-              // 7. NOTIFICATION ENDPOINTS
-              .requestMatchers("/api/v1/notifications/**").authenticated()
-
-              // 8. PROFILE PATHS
-              .requestMatchers("/api/v1/profile/admin/**").hasAuthority("ADMIN")
-              .requestMatchers("/api/v1/profile/user/**").hasAnyAuthority("USER", "ADMIN")
-              .requestMatchers("/api/v1/profile/vendor/**").hasAnyAuthority("VENDOR", "ADMIN")
-
-              //9. REPORT
-              .requestMatchers(HttpMethod.POST, "/api/v1/reports/**").hasAnyAuthority("USER", "VENDOR")
-              .requestMatchers(HttpMethod.PUT, "/api/v1/reports/admin/**").hasAuthority("ADMIN")
-
-              // 10. CATCH-ALL: Tất cả các request còn lại phải được xác thực
+              // 4. All other requests use method-level security (@PreAuthorize with action-based permissions)
               .anyRequest().authenticated()
       )
         .exceptionHandling(ex -> ex
