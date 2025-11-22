@@ -288,7 +288,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     @Transactional
-    public List<RestaurantDto> getRestaurantsInMapView(
+    public List<RestaurantMapViewDto> getRestaurantsInMapView(
             int zoomLevel,
             BigDecimal minLat,
             BigDecimal maxLat,
@@ -297,10 +297,21 @@ public class RestaurantServiceImpl implements RestaurantService {
     {
         if (zoomLevel <= 0) throw new InvalidRequestException("ZoomLevel not <= 0");
         BigDecimal minRating = getMinRatingForZoom(zoomLevel);
-        List<Restaurant> restaurants = restaurantRepository.findRestaurantsInArea(
+        List<Object[]> results = restaurantRepository.findRestaurantsInAreaForMapView(
                 minLat, maxLat, minLng, maxLng, minRating);
 
-
-        return restaurantMapper.toDtoList(restaurants);
+        return results.stream().map(row -> {
+            RestaurantMapViewDto dto = new RestaurantMapViewDto();
+            dto.setRestaurantId(UUID.fromString(row[0].toString()));
+            dto.setName((String) row[1]);
+            dto.setAddress((String) row[2]);
+            dto.setWardId(((Number) row[3]).intValue());
+            dto.setLatitude((BigDecimal) row[4]);
+            dto.setLongitude((BigDecimal) row[5]);
+            dto.setAverageRating((BigDecimal) row[6]);
+            dto.setTotalReviews(((Number) row[7]).intValue());
+            dto.setPhoto((String) row[8]);
+            return dto;
+        }).toList();
     }
 }

@@ -20,7 +20,10 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> {
 
     Page<Restaurant> findAllByStatusAndApprovalStatus(Pageable pageable, RestaurantStatus restaurantStatus, ApprovalStatus approvalStatus);
 
-    @Query(value = "SELECT r.* " +
+    @Query(value = "SELECT r.restaurant_id as restaurantId, r.name as name, r.address as address, " +
+            "r.ward_id as wardId, r.latitude as latitude, r.longitude as longitude, " +
+            "rs.average_rating as averageRating, rs.total_reviews as totalReviews, " +
+            "r.images->>'photo' as photo " +
             "FROM restaurant r " +
             "JOIN restaurant_stats rs ON r.restaurant_id = rs.restaurant_id " +
             "WHERE r.latitude BETWEEN :minLat AND :maxLat " +
@@ -28,7 +31,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> {
             "AND rs.average_rating >= :minRating " +
             "AND r.approval_status = 'APPROVED'",
             nativeQuery = true)
-    List<Restaurant> findRestaurantsInArea(
+    List<Object[]> findRestaurantsInAreaForMapView(
             @Param("minLat") BigDecimal minLat,
             @Param("maxLat") BigDecimal maxLat,
             @Param("minLng") BigDecimal minLng,

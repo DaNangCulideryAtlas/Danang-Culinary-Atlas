@@ -2,6 +2,7 @@ package com.atlasculinary.controllers;
 
 import com.atlasculinary.dtos.AddRestaurantRequest;
 import com.atlasculinary.dtos.RestaurantDto;
+import com.atlasculinary.dtos.RestaurantMapViewDto;
 import com.atlasculinary.dtos.UpdateApprovalStatusRequest;
 import com.atlasculinary.dtos.UpdateRestaurantRequest;
 import com.atlasculinary.enums.ApprovalStatus;
@@ -137,7 +138,7 @@ public class RestaurantController {
     }
 
     @GetMapping("/restaurants/map-view")
-    public ResponseEntity<List<RestaurantDto>> getRestaurantsInMapView(
+    public ResponseEntity<List<RestaurantMapViewDto>> getRestaurantsInMapView(
             @RequestParam(defaultValue = "15") int zoomLevel,
             @RequestParam(required = false) BigDecimal minLat,
             @RequestParam(required = false) BigDecimal maxLat,
@@ -149,7 +150,7 @@ public class RestaurantController {
         BigDecimal defaultMinLng = minLng != null ? minLng : new BigDecimal("-180.0");
         BigDecimal defaultMaxLng = maxLng != null ? maxLng : new BigDecimal("180.0");
 
-        List<RestaurantDto> restaurantDtoList =  restaurantService.getRestaurantsInMapView(
+        List<RestaurantMapViewDto> restaurantDtoList =  restaurantService.getRestaurantsInMapView(
                 zoomLevel,
                 defaultMinLat,
                 defaultMaxLat,

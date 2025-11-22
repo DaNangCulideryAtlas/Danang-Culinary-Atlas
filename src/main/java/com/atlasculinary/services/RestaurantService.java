@@ -2,6 +2,7 @@ package com.atlasculinary.services;
 
 import com.atlasculinary.dtos.AddRestaurantRequest;
 import com.atlasculinary.dtos.RestaurantDto;
+import com.atlasculinary.dtos.RestaurantMapViewDto;
 import com.atlasculinary.dtos.UpdateApprovalStatusRequest;
 import com.atlasculinary.dtos.UpdateRestaurantRequest;
 import com.atlasculinary.enums.ApprovalStatus;
@@ -55,5 +56,5 @@ public interface RestaurantService {
 
     Page<RestaurantDto> getAllRestaurantsApproved(int page, int size, String sortBy, String sortDirection);
 
-    List<RestaurantDto> getRestaurantsInMapView(int zoomLevel, BigDecimal minLat, BigDecimal maxLat, BigDecimal minLong, BigDecimal maxLong);
+    List<RestaurantMapViewDto> getRestaurantsInMapView(int zoomLevel, BigDecimal minLat, BigDecimal maxLat, BigDecimal minLong, BigDecimal maxLong);
 }
