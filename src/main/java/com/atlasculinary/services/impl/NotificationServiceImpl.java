@@ -66,6 +66,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Value("${app.frontend.url}")
     private String frontendUrl;
     
+    @Value("${app.backend.url}")
+    private String backendUrl;
+    
     @Value("${app.deeplink.scheme}")
     private String deeplinkScheme;
 
@@ -401,7 +404,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     private String buildPasswordResetContentForMobile(String resetToken) {
-        String deepLink = deeplinkScheme + "://reset-password?token=" + resetToken;
+        // Sử dụng Universal Link thay vì custom scheme để email client hỗ trợ tốt hơn
+        String universalLink = backendUrl + "/api/v1/auth/deeplink/reset-password?token=" + resetToken;
         
         return "<html>" +
                 "<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>" +
@@ -422,7 +426,7 @@ public class NotificationServiceImpl implements NotificationService {
                 
                 "<!-- Deep Link Button -->" +
                 "<div style='text-align: center; margin: 30px 0;'>" +
-                "<a href='" + deepLink + "' " +
+                "<a href='" + universalLink + "' " +
                 "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); " +
                 "color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; " +
                 "font-weight: bold; font-size: 16px; display: inline-block; " +
