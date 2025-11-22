@@ -79,7 +79,7 @@ public class SecurityConfig {
               .requestMatchers(PUBLIC_BASE_URLS).permitAll()
 
               // 2. PASSWORD MANAGEMENT (Công khai cho quên mật khẩu, xác thực cho đổi mật khẩu)
-              .requestMatchers("/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/validate-reset-token").permitAll()
+              .requestMatchers("/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/validate-reset-token", "/api/v1/auth/deeplink/**").permitAll()
               .requestMatchers("/api/v1/auth/change-password").authenticated()
 
               // 3. PUBLIC GET ACCESS (Đọc dữ liệu công khai)

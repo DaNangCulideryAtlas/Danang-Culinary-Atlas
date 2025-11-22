@@ -6,9 +6,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -17,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final AuthService authService;
+  
+  @Value("${app.deeplink.scheme}")
+  private String deeplinkScheme;
 
   @Operation(summary = "Đăng ký tài khoản mới")
   @PostMapping("/signup")
@@ -72,5 +78,26 @@ public class AuthController {
       ApiResponse response = ApiResponse.error("Token không hợp lệ hoặc đã hết hạn");
       return ResponseEntity.badRequest().body(response);
     }
+  }
+  
+  @Operation(summary = "Deep link redirect cho mobile app - Reset password")
+  @GetMapping("/deeplink/reset-password")
+  public RedirectView deeplinkResetPassword(@RequestParam String token) {
+    // Validate token trước khi redirect
+    boolean isValid = authService.validateResetToken(token);
+    
+    if (!isValid) {
+      // Nếu token không hợp lệ, redirect về error page hoặc deeplink với error
+      RedirectView redirectView = new RedirectView();
+      redirectView.setUrl(deeplinkScheme + "://reset-password?error=invalid_token");
+      redirectView.setStatusCode(HttpStatus.FOUND);
+      return redirectView;
+    }
+    
+    // Redirect sang deeplink scheme của app
+    RedirectView redirectView = new RedirectView();
+    redirectView.setUrl(deeplinkScheme + "://reset-password?token=" + token);
+    redirectView.setStatusCode(HttpStatus.FOUND);
+    return redirectView;
   }
 }
